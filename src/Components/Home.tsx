@@ -3,6 +3,7 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { addUser } from '../Store/UserSlice';
+import { SelectChangeEvent } from '@mui/material';
 
 enum SortOrder {
     ASCENDING = 'ascending',
@@ -72,15 +73,15 @@ class UserTable extends Component<UserTableProps, UserTableState> {
         this.setState({ searchQuery });
     };
 
-    handleSortFieldChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    handleSortFieldChange = (event: SelectChangeEvent<any>) => {
         const sortField = event.target.value as string;
         this.setState({ sortField });
-    };
-
-    handleSortOrderChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+      };
+      
+      handleSortOrderChange = (event: SelectChangeEvent<any>) => {
         const sortOrder = event.target.value as SortOrder;
         this.setState({ sortOrder });
-    };
+      };
 
 
 
@@ -166,21 +167,21 @@ class UserTable extends Component<UserTableProps, UserTableState> {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {sortedData.map((row) => (
-                                    <TableRow key={row.id}>
+                                {sortedData.map((user) => (
+                                    <TableRow key={user.id}>
                                         <TableCell>
                                             <Checkbox
-                                                checked={selectedRows.includes(row.id)}
-                                                onChange={() => this.handleRowSelect(row.id)}
+                                                checked={selectedRows.includes(user.id)}
+                                                onChange={() => this.handleRowSelect(user.id)}
                                             />
                                         </TableCell>
-                                        <TableCell>{row.firstName}</TableCell>
-                                        <TableCell>{row.lastName}</TableCell>
-                                        <TableCell>{row.email}</TableCell>
-                                        <TableCell>{row.number}</TableCell>
-                                        <TableCell>{row.status}</TableCell>
+                                        <TableCell>{user.firstName}</TableCell>
+                                        <TableCell>{user.lastName}</TableCell>
+                                        <TableCell>{user.email}</TableCell>
+                                        <TableCell>{user.number}</TableCell>
+                                        <TableCell>{user.status}</TableCell>
                                         <TableCell>
-                                            <Link to={`/edit/${row.id}`}>Edit</Link>
+                                            <Link to={`/edit/${user.id}`}>Edit</Link>
                                         </TableCell>
                                     </TableRow>
                                 ))}

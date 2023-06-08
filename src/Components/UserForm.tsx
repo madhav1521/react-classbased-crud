@@ -2,7 +2,11 @@ import React, { Component, ChangeEvent, FormEvent } from 'react';
 import { TextField, Button, Select, MenuItem, SelectChangeEvent, Typography } from '@mui/material';
 import { connect } from 'react-redux';
 import { addUser } from '../actions/actions';
-import { Navigate } from 'react-router-dom';
+import { useNavigate, } from 'react-router-dom';
+
+import { createBrowserHistory } from 'history';
+
+const history = createBrowserHistory();
 
 interface FormState {
   firstname: string;
@@ -27,7 +31,7 @@ class UserForm extends Component<UserFormProps, FormState> {
       status: ''
     };
   }
-
+ 
   handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     this.setState({ [name]: value } as Pick<FormState, keyof FormState>);
@@ -41,7 +45,7 @@ class UserForm extends Component<UserFormProps, FormState> {
     event.preventDefault();
     const { firstname, lastname, number, email, status } = this.state;
 
-    this.props.addUser({ firstname, lastname, number, email, status });
+    addUser({ firstname, lastname, number, email, status });
     console.log(this.state);
 
     
@@ -52,6 +56,9 @@ class UserForm extends Component<UserFormProps, FormState> {
       email: '',
       status: '',
     });
+    // const navigate = useNavigate();
+    // navigate('/');
+    history.push('/')
   };
   
   
@@ -128,5 +135,5 @@ const mapDispatchToProps = (dispatch: any) => ({
 
 // const mapDispatchToProps = { addUser };
 
-export default connect(null, mapDispatchToProps)(UserForm);
+export default connect(null, mapDispatchToProps)((UserForm));
 
