@@ -1,26 +1,27 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { Component } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import UserForm from './Components/UserForm';
+import { ThemeProvider } from '@mui/material';
+import { crudTheme } from './app.theme';
+import UserTable from './Components/Home';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+class App extends Component {
+  render() {
+    return (
+      <React.Fragment>
+        <ThemeProvider theme={crudTheme}>
+          <Router>
+              <div className='app-root'>
+            <Routes>
+                <Route path='/' element={<UserTable />} />
+                <Route path='/user-form' element={<UserForm />} />
+            </Routes>
+              </div>
+          </Router>
+        </ThemeProvider>
+      </React.Fragment>
+    );
+  }
 }
 
 export default App;
