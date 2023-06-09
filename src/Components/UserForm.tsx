@@ -1,10 +1,10 @@
 import React, { Component, ChangeEvent, FormEvent } from 'react';
 import { TextField, Button, Select, MenuItem, SelectChangeEvent, Typography } from '@mui/material';
-import { connect, useDispatch } from 'react-redux';
-import { userActions } from '../Store/UserSlice';
-import { useNavigate, } from 'react-router-dom';
-import { createBrowserHistory } from 'history';
-import { addUser } from '../actions/actions';
+// import { connect, useDispatch } from 'react-redux';
+// import { userActions } from '../Store/UserSlice';
+// import { useNavigate, } from 'react-router-dom';
+// import { createBrowserHistory } from 'history';
+// import { addUser } from '../actions/actions';
 
 // const history = createBrowserHistory();
 // const dispatch = useDispatch();
@@ -48,8 +48,8 @@ class UserForm extends Component<UserFormProps, FormState> {
     event.preventDefault();
     const { firstname, lastname, number, email, status } = this.state;
 
-    addUser({ firstname, lastname, number, email, status });
-    // dispatch(userActions.addUser)
+    this.props.addUser({ firstname, lastname, number, email, status });
+    dispatch(userActions.addUser)
     
     this.setState({
       firstname: '',
@@ -134,11 +134,13 @@ class UserForm extends Component<UserFormProps, FormState> {
   }
 }
 
-const mapDispatchToProps = (dispatch: any) => ({
-  addUser: (userData: FormState) => dispatch(addUser(userData)),
-});
+// const mapDispatchToProps = (dispatch: any) => ({
+//   addUser: (userData: FormState) => dispatch(addUser(userData)),
+// });
 
-// const mapDispatchToProps = { addUser };
+// // const mapDispatchToProps = { addUser };
 
-export default connect(null, mapDispatchToProps)((UserForm));
+// export default connect(null, mapDispatchToProps)((UserForm));
+
+export default UserForm;
 

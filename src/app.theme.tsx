@@ -71,9 +71,6 @@ export const crudTheme = createTheme({
           "&.input-number input":{
             paddingLeft: '70px',
           },
-          // "&.input-number label": {
-          //   paddingLeft: '65px',
-          // },
         },
       },
     },
