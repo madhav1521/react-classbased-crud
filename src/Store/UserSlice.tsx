@@ -1,32 +1,36 @@
+// userSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-interface User {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    mobileNumber: string;
-    status: string;
-}
+import { User } from '../actions/actions';
 
 interface UserState {
-    users: User[];
+  users: User[];
 }
 
 const initialState: UserState = {
-    users: [],
+  users: [],
 };
 
 const userSlice = createSlice({
-    name: 'user',
-    initialState:initialState,
-    reducers: {
-        addUser (state, action: PayloadAction<User>)  {
-            state.users.push(action.payload);
-        },
+  name: 'user',
+  initialState,
+  reducers: {
+    addUser: (state, action: PayloadAction<User>) => {
+      state.users.push(action.payload);
     },
+    updateUser: (state, action: PayloadAction<User>) => {
+      const { id } = action.payload;
+      const userIndex = state.users.findIndex((user) => user.id === id);
+      if (userIndex !== -1) {
+        state.users[userIndex] = action.payload;
+      }
+    },
+    deleteUser: (state, action: PayloadAction<number>) => {
+      const userId = action.payload;
+      state.users = state.users.filter((user) => user.id !== userId);
+    },
+  },
 });
 
-export const  userActions  = userSlice.actions;
+export const { addUser, updateUser, deleteUser } = userSlice.actions;
 
-export default userSlice;
+export default userSlice.reducer;

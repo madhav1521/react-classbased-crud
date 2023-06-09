@@ -1,18 +1,8 @@
-// import { createStore, combineReducers } from 'redux';
-import { configureStore } from '@reduxjs/toolkit';
-import userSlice from './UserSlice';
+// configureStore.ts
+import { createStore } from 'redux';
+import rootReducer from '../reducers';
 
-// Combine multiple reducers if needed
-// const rootReducer = combineReducers({
-//   user: userSlice,
-// });
-
-
-// Create the Redux store
-const store = configureStore({
-  reducer:{
-    user:userSlice.reducer,
-  }
-});
+const store = createStore(rootReducer);
 
 export default store;
+

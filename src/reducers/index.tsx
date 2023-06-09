@@ -1,8 +1,9 @@
+// index.ts
 import { combineReducers } from 'redux';
-import AddEdit from './AddEdit';
+import userReducer from './userReducer';
 
 const rootReducer = combineReducers({
-    
-})
+  users: userReducer,
+});
 
 export default rootReducer;
