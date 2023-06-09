@@ -1,12 +1,15 @@
 import React, { Component, ChangeEvent, FormEvent } from 'react';
 import { TextField, Button, Select, MenuItem, SelectChangeEvent, Typography } from '@mui/material';
-import { connect } from 'react-redux';
-import { addUser } from '../actions/actions';
+import { connect, useDispatch } from 'react-redux';
+import { userActions } from '../Store/UserSlice';
 import { useNavigate, } from 'react-router-dom';
-
 import { createBrowserHistory } from 'history';
+import { addUser } from '../actions/actions';
 
-const history = createBrowserHistory();
+// const history = createBrowserHistory();
+// const dispatch = useDispatch();
+// const { dispatch }:any = this.props;                
+
 
 interface FormState {
   firstname: string;
@@ -31,7 +34,7 @@ class UserForm extends Component<UserFormProps, FormState> {
       status: ''
     };
   }
- 
+  
   handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     this.setState({ [name]: value } as Pick<FormState, keyof FormState>);
@@ -40,14 +43,13 @@ class UserForm extends Component<UserFormProps, FormState> {
     const { name, value } = event.target;
     this.setState({ [name as string]: value } as Pick<FormState, keyof FormState>);
   };
-
+  
   handleSubmit = (event: FormEvent) => {
     event.preventDefault();
     const { firstname, lastname, number, email, status } = this.state;
 
     addUser({ firstname, lastname, number, email, status });
-    console.log(this.state);
-
+    // dispatch(userActions.addUser)
     
     this.setState({
       firstname: '',
@@ -55,10 +57,13 @@ class UserForm extends Component<UserFormProps, FormState> {
       number: '',
       email: '',
       status: '',
-    });
+    })
+    console.log('state: ',this.state);
+    // console.log('setState:',this.setState.bind(this.state));
+    
     // const navigate = useNavigate();
     // navigate('/');
-    history.push('/')
+    // history.push('/')
   };
   
   

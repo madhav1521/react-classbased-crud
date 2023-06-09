@@ -19,14 +19,14 @@ const initialState: UserState = {
 
 const userSlice = createSlice({
     name: 'user',
-    initialState,
+    initialState:initialState,
     reducers: {
-        addUser: (state, action: PayloadAction<User>) => {
+        addUser (state, action: PayloadAction<User>)  {
             state.users.push(action.payload);
         },
     },
 });
 
-export const { addUser } = userSlice.actions;
+export const  userActions  = userSlice.actions;
 
-export default userSlice.reducer;
+export default userSlice;

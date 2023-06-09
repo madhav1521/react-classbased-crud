@@ -2,14 +2,15 @@ import React, { Component } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Checkbox, Button, Box, TextField, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { addUser } from '../Store/UserSlice';
+import { userActions } from '../Store/UserSlice';
 import { SelectChangeEvent } from '@mui/material';
+import { addUser } from '../actions/actions';
 
-enum SortOrder {
-    ASCENDING = 'ascending',
-    DESCENDING = 'descending',
-}
-// type SortOrder = 'asc' | 'desc';
+// enum SortOrder {
+//     ASCENDING = 'ascending',
+//     DESCENDING = 'descending',
+// }
+type SortOrder = 'asc' | 'desc';
 
 interface UserTableProps {
     data: Array<{
@@ -38,7 +39,7 @@ class UserTable extends Component<UserTableProps, UserTableState> {
             selectAll: false,
             searchQuery: '',
             sortField: 'firstName',
-            sortOrder: SortOrder.ASCENDING,
+            sortOrder: 'asc',
         };
     }
 
@@ -103,8 +104,8 @@ class UserTable extends Component<UserTableProps, UserTableState> {
         const sortedData = filteredData.sort((a, b) => {
             const fieldA = a[sortField];
             const fieldB = b[sortField];
-
-            if (sortOrder === SortOrder.ASCENDING) {
+        
+            if (sortOrder === 'asc') {
                 if (fieldA < fieldB) return -1;
                 if (fieldA > fieldB) return 1;
                 return 0;
@@ -113,7 +114,8 @@ class UserTable extends Component<UserTableProps, UserTableState> {
                 if (fieldA < fieldB) return 1;
                 return 0;
             }
-        });
+        });   
+        
 
         return (
             <React.Fragment>
