@@ -1,4 +1,4 @@
-import React, { Component, useCallback } from 'react';
+import React, { Component, MouseEventHandler, useCallback } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Checkbox, Button, Box, TextField, FormControl, InputLabel, MenuItem, Select, ListItemIcon, Menu, ListItemText } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { ConnectedProps, connect } from 'react-redux';
@@ -53,7 +53,7 @@ class UserTable extends Component<UserTableProps, UserTableState > {
     constructor(props: UserTableProps) {
         super(props);
         this.state = {
-            selectedRows: [],
+            selectedRows: [] as number[],
             selectAll: false,
             searchQuery: '',
             sortField: 'firstname',
@@ -62,14 +62,18 @@ class UserTable extends Component<UserTableProps, UserTableState > {
             anchorEl: null,
         };
 
-        // console.log();
+        this.handleSelectAll = this.handleSelectAll.bind(this);
+        this.handleRowSelect = this.handleRowSelect.bind(this);
+        const data = [...this.props.userData];
+
         
     }
     
 
     handleSelectAll = () => {
         const { selectAll } = this.state;
-        const { data } = this.props;
+        const data = [...this.props.userData];
+        // const { data } = this.props;
 
         if (selectAll) {
             this.setState({ selectedRows: [], selectAll: false });
@@ -122,6 +126,14 @@ class UserTable extends Component<UserTableProps, UserTableState > {
     handleCloseMenu = () => {
         this.setState({ anchorEl: null });
     };
+
+    handleDelete = (id: MouseEventHandler<HTMLAnchorElement>) => {
+        // const { data } = this.state;
+        const data = [...this.props.userData];
+
+        const updatedData = data.filter((item) => item.id !== id);
+        this.setState({ data: updatedData });
+      };
 
 
 
@@ -312,7 +324,7 @@ class UserTable extends Component<UserTableProps, UserTableState > {
 
 
         const data = [...this.props.userData];
-        console.log(data);
+        console.log('actual data coming',data);
 
         // const filterFields = ["firstName", "lastName", "email", "number"];
         const filteredData = data && data.filter((row ) => {
@@ -325,41 +337,41 @@ class UserTable extends Component<UserTableProps, UserTableState > {
             );
         });
 
-        // const sortedData =filteredData && filteredData.sort((a, b) => {
-        //     const fieldA = a[sortField];
-        //     const fieldB = b[sortField];
+        const sortedData =filteredData && filteredData.sort((a, b) => {
+            const fieldA:any = a[sortField];
+            const fieldB:any = b[sortField];
 
-        //     if (sortField === 'status') {
-        //         const statusA = a.status === 'Active' ? 1 : 0;
-        //         const statusB = b.status === 'Active' ? 1 : 0;
+            if (sortField === 'status') {
+                const statusA = a.status === 'Active' ? 1 : 0;
+                const statusB = b.status === 'Active' ? 1 : 0;
 
-        //         if (sortOrder === 'asc') {
-        //             return statusA - statusB;
-        //         } else {
-        //             return statusB - statusA;
-        //         }
-        //     }
+                if (sortOrder === 'asc') {
+                    return statusA - statusB;
+                } else {
+                    return statusB - statusA;
+                }
+            }
 
-        //     if (sortOrder === 'asc') {
-        //         if (fieldA < fieldB) return -1;
-        //         if (fieldA > fieldB) return 1;
-        //         return 0;
-        //     } else {
-        //         if (fieldA > fieldB) return -1;
-        //         if (fieldA < fieldB) return 1;
-        //         return 0;
-        //     }
-        // });
-        // const filteredByStatusData = filterStatus
-        //     ? sortedData && sortedData.filter((user) => {
-        //         return (
-        //             (filterStatus === 'active' && user.status === 'Active') ||
-        //             (filterStatus === 'inactive' && user.status === 'Inactive')
-        //         );
-        //     })
-        //     : sortedData;
+            if (sortOrder === 'asc') {
+                if (fieldA < fieldB) return -1;
+                if (fieldA > fieldB) return 1;
+                return 0;
+            } else {
+                if (fieldA > fieldB) return -1;
+                if (fieldA < fieldB) return 1;
+                return 0;
+            }
+        });
+        const filteredByStatusData = filterStatus
+            ? sortedData && sortedData.filter((user) => {
+                return (
+                    (filterStatus === 'active' && user.status === 'active') ||
+                    (filterStatus === 'inactive' && user.status === 'inactive')
+                );
+            })
+            : sortedData;
 
-            const filteredByStatusData = filteredData
+            // const filteredByStatusData = filteredData
         // let currentPage: number;
         // let listItems = data;
         // let paginationLimit = 5;
@@ -575,8 +587,8 @@ class UserTable extends Component<UserTableProps, UserTableState > {
                                             <TableCell>{user.number}</TableCell>
                                             <TableCell>{user.status}</TableCell>
                                             <TableCell>
-                                                <Link to={`/${user.id}`}>Edit</Link>
-                                                <Link to={`/${user.id}`}>Delete</Link>
+                                                <Button> Edit</Button>
+                                                <Button onClick={() => this.handleDelete(user.id)}>Delete</Button>
                                             </TableCell>
                                         </TableRow>
                                     ))
