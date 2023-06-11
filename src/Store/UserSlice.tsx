@@ -1,11 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-interface User {
+export interface User {
     id: string;
-    firstName: string;
-    lastName: string;
+    firstname: string;
+    lastname: string;
     email: string;
-    mobileNumber: string;
+    number: string;
     status: string;
 }
 
@@ -21,8 +21,12 @@ const userSlice = createSlice({
     name: 'user',
     initialState:initialState,
     reducers: {
-        addUser (state, action: PayloadAction<User>)  {
+        addUser (state, action)  {
+            // throw new Error("I am From your slice");
+            
+            console.log(action.payload);
             state.users.push(action.payload);
+            // state.users.push(action.payload);
         },
     },
 });

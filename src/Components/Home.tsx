@@ -1,10 +1,10 @@
 import React, { Component, useCallback } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Checkbox, Button, Box, TextField, FormControl, InputLabel, MenuItem, Select, ListItemIcon, Menu, ListItemText } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { connect } from 'react-redux';
+import { ConnectedProps, connect } from 'react-redux';
 import { userActions } from '../Store/UserSlice';
 import { SelectChangeEvent } from '@mui/material';
-import { addUser } from '../actions/actions';
+// import { addUser } from '../actions/actions';
 // import {MoreVertIcon} from '@mui/icons-material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { IconButton } from '@mui/material';
@@ -12,6 +12,7 @@ import { IconButton } from '@mui/material';
 // import _ from 'lodash';
 import { DebounceInput } from 'react-debounce-input';
 import PaginationTable from './PaginationTable';
+import { RootState } from '../Store/Store';
 
 type SortOrder = 'asc' | 'desc';
 
@@ -27,7 +28,7 @@ type SortOrder = 'asc' | 'desc';
 //     }>;
 // }
 
-interface UserTableProps {
+interface UserTableProps extends PropsFromRedux {
     data: {
         [key: string]: any;
         id: number;
@@ -48,7 +49,7 @@ interface UserTableState {
     filterStatus: string | null;
     anchorEl: HTMLElement | null;
 }
-class UserTable extends Component<UserTableProps, UserTableState> {
+class UserTable extends Component<UserTableProps, UserTableState > {
     constructor(props: UserTableProps) {
         super(props);
         this.state = {
@@ -60,6 +61,9 @@ class UserTable extends Component<UserTableProps, UserTableState> {
             filterStatus: null,
             anchorEl: null,
         };
+
+        // console.log();
+        
     }
     
 
@@ -122,7 +126,10 @@ class UserTable extends Component<UserTableProps, UserTableState> {
 
 
     render() {
-
+        const { userData } = this.props;
+        console.log("userData");
+        console.log(userData);
+        
         const { selectedRows, selectAll, searchQuery, sortField, sortOrder, filterStatus, anchorEl } = this.state;
         const dummyData = [
             {
@@ -304,13 +311,12 @@ class UserTable extends Component<UserTableProps, UserTableState> {
         ];
 
 
-        const data = [...dummyData, ...this.props.data];
+        const data = [...this.props.userData];
         console.log(data);
 
         // const filterFields = ["firstName", "lastName", "email", "number"];
-
-        const filteredData = data.filter((row) => {
-            const fullName = `${row.firstName} ${row.lastName}`;
+        const filteredData = data && data.filter((row ) => {
+            const fullName = `${row.firstname} ${row.lastname}`;
             const lowercaseQuery = searchQuery.toLowerCase();
             return (
                 fullName.toLowerCase().includes(lowercaseQuery) ||
@@ -319,40 +325,41 @@ class UserTable extends Component<UserTableProps, UserTableState> {
             );
         });
 
-        const sortedData = filteredData.sort((a, b) => {
-            const fieldA: any = a[sortField];
-            const fieldB: any = b[sortField];
+        // const sortedData =filteredData && filteredData.sort((a, b) => {
+        //     const fieldA = a[sortField];
+        //     const fieldB = b[sortField];
 
-            if (sortField === 'status') {
-                const statusA = a.status === 'Active' ? 1 : 0;
-                const statusB = b.status === 'Active' ? 1 : 0;
+        //     if (sortField === 'status') {
+        //         const statusA = a.status === 'Active' ? 1 : 0;
+        //         const statusB = b.status === 'Active' ? 1 : 0;
 
-                if (sortOrder === 'asc') {
-                    return statusA - statusB;
-                } else {
-                    return statusB - statusA;
-                }
-            }
+        //         if (sortOrder === 'asc') {
+        //             return statusA - statusB;
+        //         } else {
+        //             return statusB - statusA;
+        //         }
+        //     }
 
-            if (sortOrder === 'asc') {
-                if (fieldA < fieldB) return -1;
-                if (fieldA > fieldB) return 1;
-                return 0;
-            } else {
-                if (fieldA > fieldB) return -1;
-                if (fieldA < fieldB) return 1;
-                return 0;
-            }
-        });
-        const filteredByStatusData = filterStatus
-            ? sortedData.filter((user) => {
-                return (
-                    (filterStatus === 'active' && user.status === 'Active') ||
-                    (filterStatus === 'inactive' && user.status === 'Inactive')
-                );
-            })
-            : sortedData;
+        //     if (sortOrder === 'asc') {
+        //         if (fieldA < fieldB) return -1;
+        //         if (fieldA > fieldB) return 1;
+        //         return 0;
+        //     } else {
+        //         if (fieldA > fieldB) return -1;
+        //         if (fieldA < fieldB) return 1;
+        //         return 0;
+        //     }
+        // });
+        // const filteredByStatusData = filterStatus
+        //     ? sortedData && sortedData.filter((user) => {
+        //         return (
+        //             (filterStatus === 'active' && user.status === 'Active') ||
+        //             (filterStatus === 'inactive' && user.status === 'Inactive')
+        //         );
+        //     })
+        //     : sortedData;
 
+            const filteredByStatusData = filteredData
         // let currentPage: number;
         // let listItems = data;
         // let paginationLimit = 5;
@@ -444,7 +451,6 @@ class UserTable extends Component<UserTableProps, UserTableState> {
         //     }
         //   });
         // };
-
 
         return (
             <React.Fragment>
@@ -559,12 +565,12 @@ class UserTable extends Component<UserTableProps, UserTableState> {
                                         <TableRow key={user.id}>
                                             <TableCell>
                                                 <Checkbox
-                                                    checked={selectedRows.includes(user.id)}
-                                                    onChange={() => this.handleRowSelect(user.id)}
+                                                    checked={selectedRows.includes(Number(user.id))}
+                                                    onChange={() => this.handleRowSelect(Number(user.id))}
                                                 />
                                             </TableCell>
-                                            <TableCell>{user.firstName}</TableCell>
-                                            <TableCell>{user.lastName}</TableCell>
+                                            <TableCell>{user.firstname}</TableCell>
+                                            <TableCell>{user.lastname}</TableCell>
                                             <TableCell>{user.email}</TableCell>
                                             <TableCell>{user.number}</TableCell>
                                             <TableCell>{user.status}</TableCell>
@@ -611,7 +617,13 @@ class UserTable extends Component<UserTableProps, UserTableState> {
 
 // // export default connect(mapStateToProps)(UserTable);
 // export default connect(mapStateToProps, mapDispatchToProps)(UserTable);
+const mapStateToProps = ( state : RootState  ) =>( {
+    userData : state.user.users
+})
+const connector = connect(mapStateToProps)
+type PropsFromRedux = ConnectedProps<typeof connector>;
+const ConnectedComponent = connector(UserTable);
 
-export default UserTable;
+export default ConnectedComponent;
 
 

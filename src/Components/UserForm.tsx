@@ -1,14 +1,15 @@
 import React, { Component, ChangeEvent, FormEvent } from 'react';
 import { TextField, Button, Select, MenuItem, SelectChangeEvent, Typography } from '@mui/material';
-// import { connect, useDispatch } from 'react-redux';
+import { connect, useDispatch } from 'react-redux';
 // import { userActions } from '../Store/UserSlice';
 // import { useNavigate, } from 'react-router-dom';
 // import { createBrowserHistory } from 'history';
 // import { addUser } from '../actions/actions';
-
+import { Dispatch } from '@reduxjs/toolkit';
 // const history = createBrowserHistory();
-// const dispatch = useDispatch();
-// const { dispatch }:any = this.props;                
+// const { dispatch }:any = this.props;
+import { userActions } from '../Store/UserSlice';
+import { withRouter } from './withRouter';
 
 
 interface FormState {
@@ -21,6 +22,7 @@ interface FormState {
 
 interface UserFormProps {
   addUser: (userData: FormState) => void;
+  navigate : any
 }
 
 class UserForm extends Component<UserFormProps, FormState> {
@@ -34,7 +36,8 @@ class UserForm extends Component<UserFormProps, FormState> {
       status: ''
     };
   }
-  
+
+
   handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     this.setState({ [name]: value } as Pick<FormState, keyof FormState>);
@@ -43,14 +46,21 @@ class UserForm extends Component<UserFormProps, FormState> {
     const { name, value } = event.target;
     this.setState({ [name as string]: value } as Pick<FormState, keyof FormState>);
   };
-  
+
+
   handleSubmit = (event: FormEvent) => {
+
     event.preventDefault();
+    const { dispatch }: any = this.props;
     const { firstname, lastname, number, email, status } = this.state;
 
     this.props.addUser({ firstname, lastname, number, email, status });
-    dispatch(userActions.addUser)
-    
+    // dispatch(userActions.addUser({
+    // '123', firstname, lastname, number, email, status
+    // }))\: 
+    // dispatch(userActions.addUser({ id: 'qwe', firstName: firstname, lastName: lastname, email: email, status: status }))
+    // dispatchAddUser({ id: 'qwe', firstName: firstname, lastName: lastname, email, status });
+
     this.setState({
       firstname: '',
       lastname: '',
@@ -58,15 +68,15 @@ class UserForm extends Component<UserFormProps, FormState> {
       email: '',
       status: '',
     })
-    console.log('state: ',this.state);
+    // console.log('state: ', this.state);
     // console.log('setState:',this.setState.bind(this.state));
-    
+    this.props.navigate('/')
     // const navigate = useNavigate();
     // navigate('/');
     // history.push('/')
   };
-  
-  
+
+
   render() {
     // const { firstname, lastname, number, email, status } = this.state;
 
@@ -96,7 +106,7 @@ class UserForm extends Component<UserFormProps, FormState> {
             <label htmlFor='contact' >Contact Number</label>
             <Typography component='span' className='in-number' >+91</Typography>
             <TextField
-            className='input-number'
+              className='input-number'
               type='number'
               label="Number"
               name="number"
@@ -138,9 +148,19 @@ class UserForm extends Component<UserFormProps, FormState> {
 //   addUser: (userData: FormState) => dispatch(addUser(userData)),
 // });
 
+// const mapDispatchToProps = (dispatch: (arg0: { type: string; payload: any; }) => any) => {
+//   return {
+//     dispatchAddUser: (user: any) => dispatch(addUser(user)),
+//   };
+// };
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  addUser: (newData: FormState) => dispatch(userActions.addUser(newData))
+})
+
 // // const mapDispatchToProps = { addUser };
 
-// export default connect(null, mapDispatchToProps)((UserForm));
+export default connect(null, mapDispatchToProps)(withRouter(UserForm));
 
-export default UserForm;
+// export default UserForm;
 

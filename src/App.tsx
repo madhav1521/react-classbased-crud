@@ -51,7 +51,7 @@
 //       </React.Fragment>
 //     );
 //   }
-// }
+// }z
 
 // const mapStateToProps = (state: { user: { initialState: any; }; }) => ({
 //   showTable: state.user.initialState,
@@ -101,7 +101,7 @@ class App extends Component<{}, AppState> {
             />
             <Route
               path="/user-form"
-              element={<UserForm addUser={this.addUser} />}
+              element={<UserForm />}
             />
           </Routes>
         </div>

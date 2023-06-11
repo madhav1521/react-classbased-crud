@@ -1,6 +1,7 @@
 // import { createStore, combineReducers } from 'redux';
 import { configureStore } from '@reduxjs/toolkit';
 import userSlice from './UserSlice';
+import { useDispatch } from 'react-redux';
 
 // Combine multiple reducers if needed
 // const rootReducer = combineReducers({
@@ -15,4 +16,11 @@ const store = configureStore({
   }
 });
 
+export type RootState = ReturnType<typeof store.getState>;
+
+export type AppDispatch = typeof store.dispatch;
+export const useAppDispatch: () => AppDispatch = useDispatch ;
 export default store;
+
+
+
