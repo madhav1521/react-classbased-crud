@@ -65,15 +65,22 @@ export const crudTheme = createTheme({
         },
       },
     },
-    MuiFormControl:{
-      styleOverrides:{
-        root:{
-          "&.input-number input":{
-            paddingLeft: '70px',
+    MuiFormControl: {
+      styleOverrides: {
+        root: {
+          ".input-number": {
+            "&.MuiInputBase-input": {
+              paddingLeft: '70px',
+            },
           },
         },
       },
     },
-},
+    MuiButtonBase: {
+      styleOverrides: {
+        root: {
+        }
+      }
+    }
+  },
 });
-    

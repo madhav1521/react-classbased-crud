@@ -9,33 +9,45 @@ import { Dispatch } from '@reduxjs/toolkit';
 // const history = createBrowserHistory();
 // const { dispatch }:any = this.props;
 import { userActions } from '../Store/UserSlice';
+// import { editContent } from '../Store/UserSlice';
 import { withRouter } from './withRouter';
+// import  editUser  from '../actions/actions';
 
 
 interface FormState {
-  firstname: string;
-  lastname: string;
+  firstName: string;
+  lastName: string;
   number: string;
   email: string;
   status: string;
+  // updatedData:string;
+  // contentId:string;
 }
 
 interface UserFormProps {
   addUser: (userData: FormState) => void;
-  navigate : any
+  navigate : any;
+  editContent:(contentId: any, updatedData: any)=>void;
 }
 
 class UserForm extends Component<UserFormProps, FormState> {
   constructor(props: UserFormProps) {
     super(props);
     this.state = {
-      firstname: '',
-      lastname: '',
+      firstName: '',
+      lastName: '',
       number: '',
       email: '',
-      status: ''
+      status: '',
+      // contentId:'',
+      // updatedData:''
     };
   }
+  
+  handleEditContent = (contentId: any, updatedData: any) => {
+    // Dispatch the editContent action with the contentId and updatedData
+    this.props.editContent(contentId, updatedData);
+  };
 
 
   handleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -52,33 +64,25 @@ class UserForm extends Component<UserFormProps, FormState> {
 
     event.preventDefault();
     const { dispatch }: any = this.props;
-    const { firstname, lastname, number, email, status } = this.state;
+    // const { contentId, updatedData } = this.props;
+    const { firstName, lastName, number, email, status } = this.state;
 
-    this.props.addUser({ firstname, lastname, number, email, status });
-    // dispatch(userActions.addUser({
-    // '123', firstname, lastname, number, email, status
-    // }))\: 
-    // dispatch(userActions.addUser({ id: 'qwe', firstName: firstname, lastName: lastname, email: email, status: status }))
-    // dispatchAddUser({ id: 'qwe', firstName: firstname, lastName: lastname, email, status });
+    this.props.addUser({firstName, lastName, number, email, status});
+    // this.props.editContent(contentId, updatedData);
 
     this.setState({
-      firstname: '',
-      lastname: '',
-      number: '',
+      firstName: '',
+      lastName: '',
       email: '',
+      number: '',
       status: '',
     })
-    // console.log('state: ', this.state);
-    // console.log('setState:',this.setState.bind(this.state));
     this.props.navigate('/')
-    // const navigate = useNavigate();
-    // navigate('/');
-    // history.push('/')
   };
 
 
   render() {
-    // const { firstname, lastname, number, email, status } = this.state;
+    // const { users,contents } = this.state;
 
     return (
       <div className='user-form'>
@@ -88,8 +92,8 @@ class UserForm extends Component<UserFormProps, FormState> {
             <label htmlFor='fname' >First Name</label>
             <TextField
               label="First Name"
-              name="firstname"
-              value={this.state.firstname}
+              name="firstName"
+              value={this.state.firstName}
               onChange={this.handleChange}
             />
           </div>
@@ -97,8 +101,8 @@ class UserForm extends Component<UserFormProps, FormState> {
             <label htmlFor='lname' >Last Name</label>
             <TextField
               label="Last Name"
-              name="lastname"
-              value={this.state.lastname}
+              name="lastName"
+              value={this.state.lastName}
               onChange={this.handleChange}
             />
           </div>
@@ -131,8 +135,8 @@ class UserForm extends Component<UserFormProps, FormState> {
               value={this.state.status}
               onChange={this.handleSelectChange}
             >
-              <MenuItem value="active">Active</MenuItem>
-              <MenuItem value="inactive">Inactive</MenuItem>
+              <MenuItem value="Active">Active</MenuItem>
+              <MenuItem value="Inactive">Inactive</MenuItem>
             </Select>
           </div>
           <Button type="submit" variant="contained" color="primary">
@@ -144,23 +148,28 @@ class UserForm extends Component<UserFormProps, FormState> {
   }
 }
 
-// const mapDispatchToProps = (dispatch: any) => ({
-//   addUser: (userData: FormState) => dispatch(addUser(userData)),
+// const mapStateToProps = (state: { userReducer: { users: any; }; reducer: { contents: any; }; }) => ({
+//   users: state.userReducer.users,
+//   // contents: state.reducer.users
 // });
-
-// const mapDispatchToProps = (dispatch: (arg0: { type: string; payload: any; }) => any) => {
-//   return {
-//     dispatchAddUser: (user: any) => dispatch(addUser(user)),
-//   };
-// };
-
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  addUser: (newData: FormState) => dispatch(userActions.addUser(newData))
+  addUser: (newData: FormState) => dispatch(userActions.addUser(newData)),
+  editContent: (contentId: any, updatedData: any) => dispatch(editContent(contentId))
 })
 
 // // const mapDispatchToProps = { addUser };
 
 export default connect(null, mapDispatchToProps)(withRouter(UserForm));
 
-// export default UserForm;
+function editContent(contentId: any): any {
+  throw new Error('Function not implemented.');
+}
+// export default connect(mapStateToProps, mapDispatchToProps)(withRouter(UserForm));
 
+
+
+// const mapDispatchToProps = {
+//   editContent
+// };
+
+// export default connect(mapStateToProps, mapDispatchToProps)(UserForm);

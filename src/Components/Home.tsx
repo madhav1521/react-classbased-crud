@@ -1,4 +1,4 @@
-import React, { Component, MouseEventHandler, useCallback } from 'react';
+import React, { ChangeEvent, Component, MouseEventHandler, useCallback } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Checkbox, Button, Box, TextField, FormControl, InputLabel, MenuItem, Select, ListItemIcon, Menu, ListItemText } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { ConnectedProps, connect } from 'react-redux';
@@ -39,6 +39,16 @@ interface UserTableProps extends PropsFromRedux {
         status: string;
     }[];
 }
+interface User {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    number: string;
+    status: string;
+}
+
+type SortField = keyof User
 
 interface UserTableState {
     selectedRows: number[];
@@ -48,55 +58,111 @@ interface UserTableState {
     sortOrder: SortOrder;
     filterStatus: string | null;
     anchorEl: HTMLElement | null;
+    data: any;
+    currentPage: number;
+    perPage: number;
 }
-class UserTable extends Component<UserTableProps, UserTableState > {
+class UserTable extends Component<UserTableProps, UserTableState> {
     constructor(props: UserTableProps) {
         super(props);
         this.state = {
             selectedRows: [] as number[],
             selectAll: false,
             searchQuery: '',
-            sortField: 'firstname',
+            sortField: 'firstName',
             sortOrder: 'asc',
             filterStatus: null,
             anchorEl: null,
+            data: [] as any,
+            currentPage: 1,
+            perPage: 5,
         };
-
-        this.handleSelectAll = this.handleSelectAll.bind(this);
-        this.handleRowSelect = this.handleRowSelect.bind(this);
         const data = [...this.props.userData];
 
-        
+        // this.handleSelectAll = this.handleSelectAll.bind(this);
+        // this.handleRowSelect = this.handleRowSelect.bind(this);
+
+
     }
-    
 
-    handleSelectAll = () => {
-        const { selectAll } = this.state;
-        const data = [...this.props.userData];
-        // const { data } = this.props;
 
-        if (selectAll) {
-            this.setState({ selectedRows: [], selectAll: false });
-        } else {
-            const selectedIds = data.map((row) => row.id);
-            this.setState({ selectedRows: selectedIds, selectAll: true });
-            console.log('data', data);
-            console.log('selectedIds', selectedIds);
-        }
+    // handleSelectAll = () => {
+    //     const { selectAll } = this.state;
+    //     const data = [...this.props.userData];
+    //     // const { data } = this.props;
+
+    //     if (selectAll) {
+    //         this.setState({ selectedRows: [], selectAll: false });
+    //     } else {
+    //         const selectedIds = data.map((row) => row.id);
+    //         this.setState({ selectedRows: selectedIds, selectAll: true });
+    //         console.log('data', data);
+    //         console.log('selectedIds', selectedIds);
+    //     }
+    // };
+
+    // handleRowSelect = (rowId: number) => {
+    //     const { selectedRows } = this.state;
+
+    //     if (selectedRows.includes(rowId)) {
+    //         const updatedSelection = selectedRows.filter((id) => id !== rowId);
+    //         this.setState({ selectedRows: updatedSelection });
+    //     } else {
+    //         this.setState((prevState) => ({
+    //             selectedRows: [...prevState.selectedRows, rowId],
+    //         }));
+    //     }
+    // };
+
+    // handleSelectAll = (event: ChangeEvent<HTMLInputElement>) => {
+    //     const { checked } = event.target;
+    //     this.setState({
+    //       selectAll: checked,
+    //       selectedRows: checked ? this.state.data.map((user: { id: any; }) => Number(user.id)) : []
+    //     });
+    //   };
+
+    //   handleRowSelect = (event:ChangeEvent<HTMLInputElement>, id: number) => {
+    //     const { checked } = event.target;
+    //     this.setState((prevState) => {
+    //       let selectedRows = [...prevState.selectedRows];
+    //       if (checked) {
+    //         selectedRows.push(id);
+    //       } else {
+    //         selectedRows = selectedRows.filter(rowId => rowId !== id);
+    //       }
+    //       return {
+    //         selectAll: selectedRows.length === prevState.data.length,
+    //         selectedRows
+    //       };
+    //     });
+    //   };
+
+    handleSelectAll = (event: ChangeEvent<HTMLInputElement>) => {
+        const { checked } = event.target;
+        const selectedRows = checked ? this.props.userData.map((user: { id: any; }) => Number(user.id)) : [];
+        this.setState({
+            selectAll: checked,
+            selectedRows: selectedRows,
+        });
     };
 
-    handleRowSelect = (rowId: number) => {
-        const { selectedRows } = this.state;
-
-        if (selectedRows.includes(rowId)) {
-            const updatedSelection = selectedRows.filter((id) => id !== rowId);
-            this.setState({ selectedRows: updatedSelection });
-        } else {
-            this.setState((prevState) => ({
-                selectedRows: [...prevState.selectedRows, rowId],
-            }));
-        }
+    handleRowSelect = (event: ChangeEvent<HTMLInputElement>, id: number) => {
+        const { checked } = event.target;
+        this.setState((prevState) => {
+            let selectedRows = [...prevState.selectedRows];
+            if (checked) {
+                selectedRows.push(id);
+            } else {
+                selectedRows = selectedRows.filter(rowId => rowId !== id);
+            }
+            return {
+                selectAll: selectedRows.length === this.props.userData.length,
+                selectedRows
+            };
+        });
     };
+
 
 
     handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,342 +193,80 @@ class UserTable extends Component<UserTableProps, UserTableState > {
         this.setState({ anchorEl: null });
     };
 
-    handleDelete = (id: MouseEventHandler<HTMLAnchorElement>) => {
-        // const { data } = this.state;
-        const data = [...this.props.userData];
-
-        const updatedData = data.filter((item) => item.id !== id);
+    handleDelete = (index: any) => {
+        const rows = [...this.props.userData];
+        const updatedData = rows.filter((index, item: any) => item.id !== index);
+        rows.splice(index, 1);
+        alert(`are you sure want to delete the user? `)
         this.setState({ data: updatedData });
-      };
-
-
+        console.log('delete:', updatedData)
+        console.log('deleteData:', rows)
+    };
+    handlePageChange = (page: number) => {
+        this.setState({ currentPage: page });
+    };
+    handlePerPageChange = (event: { target: { value: string; }; }) => {
+        const perPage = parseInt(event.target.value);
+        this.setState({ perPage });
+    };
 
     render() {
         const { userData } = this.props;
         console.log("userData");
         console.log(userData);
-        
-        const { selectedRows, selectAll, searchQuery, sortField, sortOrder, filterStatus, anchorEl } = this.state;
-        const dummyData = [
-            {
-                id: 1,
-                firstName: "David",
-                lastName: "Wilson",
-                email: "david.wilson@example.com",
-                number: "1234567890",
-                status: "Active"
-            },
-            {
-                id: 2,
-                firstName: "Sophia",
-                lastName: "Miller",
-                email: "sophia.miller@example.com",
-                number: "9876543210",
-                status: "Active"
-            },
-            {
-                id: 3,
-                firstName: "Daniel",
-                lastName: "Johnson",
-                email: "daniel.johnson@example.com",
-                number: "5555555555",
-                status: "Active"
-            },
-            {
-                id: 4,
-                firstName: "Olivia",
-                lastName: "Anderson",
-                email: "olivia.anderson@example.com",
-                number: "1111111111",
-                status: "Active"
-            },
-            {
-                id: 5,
-                firstName: "James",
-                lastName: "Thompson",
-                email: "james.thompson@example.com",
-                number: "9999999999",
-                status: "Inactive"
-            },
-            {
-                id: 6,
-                firstName: "Mia",
-                lastName: "Davis",
-                email: "mia.davis@example.com",
-                number: "7777777777",
-                status: "Inactive"
-            },
-            {
-                id: 7,
-                firstName: "William",
-                lastName: "Wilson",
-                email: "william.wilson@example.com",
-                number: "8888888888",
-                status: "Inactive"
-            },
-            {
-                id: 8,
-                firstName: "Charlotte",
-                lastName: "Harris",
-                email: "charlotte.harris@example.com",
-                number: "4444444444",
-                status: "Active"
-            },
-            {
-                id: 9,
-                firstName: "Alexander",
-                lastName: "Clark",
-                email: "alexander.clark@example.com",
-                number: "2222222222",
-                status: "Active"
-            },
-            {
-                id: 10,
-                firstName: "Ava",
-                lastName: "Lewis",
-                email: "ava.lewis@example.com",
-                number: "6666666666",
-                status: "Inactive"
-            },
-            {
-                id: 11,
-                firstName: "Michael",
-                lastName: "Moore",
-                email: "michael.moore@example.com",
-                number: "3333333333",
-                status: "Active"
-            },
-            {
-                id: 12,
-                firstName: "Emily",
-                lastName: "Garcia",
-                email: "emily.garcia@example.com",
-                number: "7777777777",
-                status: "Active"
-            },
-            {
-                id: 13,
-                firstName: "Benjamin",
-                lastName: "Young",
-                email: "benjamin.young@example.com",
-                number: "1111111111",
-                status: "Inactive"
-            },
-            {
-                id: 14,
-                firstName: "Sofia",
-                lastName: "Thomas",
-                email: "sofia.thomas@example.com",
-                number: "9999999999",
-                status: "Inactive"
-            },
-            {
-                id: 15,
-                firstName: "Henry",
-                lastName: "Lopez",
-                email: "henry.lopez@example.com",
-                number: "5555555555",
-                status: "Active"
-            },
-            {
-                id: 16,
-                firstName: "Ella",
-                lastName: "Allen",
-                email: "ella.allen@example.com",
-                number: "2222222222",
-                status: "Active"
-            },
-            {
-                id: 17,
-                firstName: "Joseph",
-                lastName: "Rodriguez",
-                email: "joseph.rodriguez@example.com",
-                number: "8888888888",
-                status: "Inactive"
-            },
-            {
-                id: 18,
-                firstName: "Chloe",
-                lastName: "Turner",
-                email: "chloe.turner@example.com",
-                number: "6666666666",
-                status: "Active"
-            },
-            {
-                id: 19,
-                firstName: "Samuel",
-                lastName: "Scott",
-                email: "samuel.scott@example.com",
-                number: "4444444444",
-                status: "Active"
-            },
-            {
-                id: 20,
-                firstName: "Grace",
-                lastName: "Murphy",
-                email: "grace.murphy@example.com",
-                number: "3333333333",
-                status: "Inactive"
-            },
-            {
-                id: 21,
-                firstName: "Andrew",
-                lastName: "Cook",
-                email: "andrew.cook@example.com",
-                number: "7777777777",
-                status: "Active"
-            },
-            {
-                id: 22,
-                firstName: "Lily",
-                lastName: "Baker",
-                email: "lily.baker@example.com",
-                number: "1111111111",
-                status: "Active"
-            }
-        ];
 
+        const { selectedRows, selectAll, searchQuery, sortField, sortOrder, filterStatus, anchorEl, currentPage, perPage } = this.state;
 
         const data = [...this.props.userData];
-        console.log('actual data coming',data);
+        console.log('actual data coming', data);
 
         // const filterFields = ["firstName", "lastName", "email", "number"];
-        const filteredData = data && data.filter((row ) => {
-            const fullName = `${row.firstname} ${row.lastname}`;
+        const filteredData = data.filter((row: any) => {
+            const fullName = `${row.firstName} ${row.lastName}`;
             const lowercaseQuery = searchQuery.toLowerCase();
             return (
                 fullName.toLowerCase().includes(lowercaseQuery) ||
                 row.email.toLowerCase().includes(lowercaseQuery) ||
-                row.number.includes(searchQuery)
+                row.number.includes(lowercaseQuery) ||
+                row.status.toLowerCase().includes(lowercaseQuery)
             );
         });
 
-        const sortedData =filteredData && filteredData.sort((a, b) => {
-            const fieldA:any = a[sortField];
-            const fieldB:any = b[sortField];
+        // Sort filtered data
+        const sortedData = filteredData.sort((a, b) => {
+            
+            const fieldA: any = a[sortField as SortField].toLowerCase();
+            const fieldB: any = b[sortField as SortField].toLowerCase();
 
-            if (sortField === 'status') {
-                const statusA = a.status === 'Active' ? 1 : 0;
-                const statusB = b.status === 'Active' ? 1 : 0;
-
-                if (sortOrder === 'asc') {
-                    return statusA - statusB;
-                } else {
-                    return statusB - statusA;
-                }
+            if (fieldA < fieldB) {
+                return sortOrder === 'asc' ? -1 : 1;
             }
-
-            if (sortOrder === 'asc') {
-                if (fieldA < fieldB) return -1;
-                if (fieldA > fieldB) return 1;
-                return 0;
-            } else {
-                if (fieldA > fieldB) return -1;
-                if (fieldA < fieldB) return 1;
-                return 0;
+            if (fieldA > fieldB) {
+                return sortOrder === 'asc' ? 1 : -1;
             }
+            return 0;
         });
+
+        // Filter sorted data by status
         const filteredByStatusData = filterStatus
-            ? sortedData && sortedData.filter((user) => {
+            ? sortedData.filter((user: { status: string }) => {
                 return (
-                    (filterStatus === 'active' && user.status === 'active') ||
-                    (filterStatus === 'inactive' && user.status === 'inactive')
+                    (filterStatus === 'Active' && user.status === 'Active') ||
+                    (filterStatus === 'Inactive' && user.status === 'Inactive')
                 );
             })
             : sortedData;
 
-            // const filteredByStatusData = filteredData
-        // let currentPage: number;
-        // let listItems = data;
-        // let paginationLimit = 5;
-        // let pageCount = Math.ceil(listItems.length / paginationLimit);
-        // const paginationNumbers = document.getElementById("paginationNumbers");
-        // const prevButton = document.getElementById("prevButton");
-        // const nextButton = document.getElementById("nextButton");
+        const totalPages = Math.ceil(filteredByStatusData.length / perPage);
+        const adjustedCurrentPage = currentPage > totalPages ? totalPages : currentPage;
+        const startIndex = (adjustedCurrentPage - 1) * perPage;
+        const endIndex = startIndex + perPage;
 
-        // const appendPageNumber = (index:any) => {
-        //   const pageNumber = document.createElement("button");
-        //   pageNumber.className = "pagination-number";
-        //   pageNumber.innerHTML = index;
-        //   pageNumber.setAttribute("page-index", index);
-        //   pageNumber.setAttribute("aria-label", "Page " + index);
-        //   paginationNumbers.appendChild(pageNumber);
-        // };
+        const paginationRange = `${startIndex + 1} - ${Math.min(endIndex, filteredByStatusData.length)} of ${filteredByStatusData.length}`;
 
-        // const getPaginationNumbers = () => {
-        //   for (let i = 1; i <= pageCount; i++) {
-        //     appendPageNumber(i);
-        //   }
-        // };
+        // Get paginated data
+        const filteredAndPaginatedData = filteredByStatusData.slice(startIndex, endIndex);
 
-        // const setCurrentPage = (pageNum: number) => {
-        //   currentPage = pageNum;
-
-        //   handleActivePageNumber();
-        //   const prevRange = (pageNum - 1) * paginationLimit;
-        //   const currRange = pageNum * paginationLimit;
-        //   listItems.forEach((item, index) => {
-        //     item.classList.add("hidden");
-        //     if (index >= prevRange && index < currRange) {
-        //       item.classList.remove("hidden");
-        //     }
-        //   });
-
-        //   handlePageButtonsStatus();
-        // };
-
-        // const disableButton = (button: HTMLElement ) => {
-        //   button.classList.add("disabled");
-        //   button.setAttribute("disabled", true);
-        // };
-
-        // const enableButton = (button: HTMLElement ) => {
-        //   button.classList.remove("disabled");
-        //   button.removeAttribute("disabled");
-        // };
-
-        // const handlePageButtonsStatus = () => {
-        //   if (currentPage === 1) {
-        //     disableButton(prevButton);
-        //   } else {
-        //     enableButton(prevButton);
-        //   }
-        //   if (pageCount === currentPage) {
-        //     disableButton(nextButton);
-        //   } else {
-        //     enableButton(nextButton);
-        //   }
-        // };
-
-        // window.addEventListener("load", () => {
-        //   getPaginationNumbers();
-        //   setCurrentPage(1);
-        //   prevButton.addEventListener("click", () => {
-        //     setCurrentPage(currentPage - 1);
-        //   });
-        //   nextButton.addEventListener("click", () => {
-        //     setCurrentPage(currentPage + 1);
-        //   });
-        //   document.querySelectorAll(".pagination-number").forEach((button) => {
-        //     const pageIndex = Number(button.getAttribute("page-index"));
-        //     if (pageIndex) {
-        //       button.addEventListener("click", () => {
-        //         setCurrentPage(pageIndex);
-        //       });
-        //     }
-        //   });
-        // });
-
-        // const handleActivePageNumber = () => {
-        //   document.querySelectorAll(".pagination-number").forEach((button) => {
-        //     button.classList.remove("active");
-
-        //     const pageIndex = Number(button.getAttribute("page-index"));
-        //     if (pageIndex === currentPage) {
-        //       button.classList.add("active");
-        //     }
-        //   });
-        // };
 
         return (
             <React.Fragment>
@@ -507,7 +311,7 @@ class UserTable extends Component<UserTableProps, UserTableState > {
                                 id="demo-simple-select"
                                 value={sortOrder}
                                 label="Sort by.."
-                                onChange={this.handleSortFieldChange}
+                                onChange={this.handleSortOrderChange}
                             >
                                 <MenuItem value="asc">Ascending</MenuItem>
                                 <MenuItem value="desc">Descending</MenuItem>
@@ -522,7 +326,7 @@ class UserTable extends Component<UserTableProps, UserTableState > {
                         >
                             <MoreVertIcon />
                         </IconButton>
-                        
+
                         <Menu
                             id='filter-menu'
                             anchorEl={anchorEl}
@@ -536,15 +340,15 @@ class UserTable extends Component<UserTableProps, UserTableState > {
                                 </ListItemIcon>
                                 <ListItemText primary='All' />
                             </MenuItem>
-                            <MenuItem onClick={() => this.handleFilterStatusChange('active')}>
+                            <MenuItem onClick={() => this.handleFilterStatusChange('Active')}>
                                 <ListItemIcon>
-                                    <Checkbox checked={filterStatus === 'active'} />
+                                    <Checkbox checked={filterStatus === 'Active'} />
                                 </ListItemIcon>
                                 <ListItemText primary='Active' />
                             </MenuItem>
-                            <MenuItem onClick={() => this.handleFilterStatusChange('inactive')}>
+                            <MenuItem onClick={() => this.handleFilterStatusChange('Inactive')}>
                                 <ListItemIcon>
-                                    <Checkbox checked={filterStatus === 'inactive'} />
+                                    <Checkbox checked={filterStatus === 'Inactive'} />
                                 </ListItemIcon>
                                 <ListItemText primary='Inactive' />
                             </MenuItem>
@@ -568,46 +372,82 @@ class UserTable extends Component<UserTableProps, UserTableState > {
                                     <TableCell>Email</TableCell>
                                     <TableCell>Number</TableCell>
                                     <TableCell>Status</TableCell>
-                                    <TableCell>Action</TableCell>
+                                    <TableCell style={{textAlign:"center"}}>Action</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {filteredByStatusData.length > 0 ?
-                                    filteredByStatusData.map((user) => (
-                                        <TableRow key={user.id}>
+                                {filteredAndPaginatedData.length > 0 ? (
+                                    filteredAndPaginatedData.map((user: any) => (
+                                        <TableRow key={user.id} >
                                             <TableCell>
                                                 <Checkbox
                                                     checked={selectedRows.includes(Number(user.id))}
-                                                    onChange={() => this.handleRowSelect(Number(user.id))}
+                                                    onChange={(event) => this.handleRowSelect(event, Number(user.id))}
                                                 />
                                             </TableCell>
-                                            <TableCell>{user.firstname}</TableCell>
-                                            <TableCell>{user.lastname}</TableCell>
+                                            <TableCell>{user.firstName}</TableCell>
+                                            <TableCell>{user.lastName}</TableCell>
                                             <TableCell>{user.email}</TableCell>
                                             <TableCell>{user.number}</TableCell>
-                                            <TableCell>{user.status}</TableCell>
+                                            <TableCell><div className={`user-row ${user.status === 'Active' ? 'active' : 'inactive'}`}>
+                                                {user.status}
+                                            </div></TableCell>
                                             <TableCell>
-                                                <Button> Edit</Button>
+                                                <Button>Edit</Button>
                                                 <Button onClick={() => this.handleDelete(user.id)}>Delete</Button>
                                             </TableCell>
                                         </TableRow>
                                     ))
-                                    :
-                                    <p style={{ textAlign: 'center' }}>data not found</p>}
-
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={7} style={{ textAlign: 'center' }}>
+                                            Data not found
+                                        </TableCell>
+                                    </TableRow>
+                                )}
                             </TableBody>
                         </Table>
                     </TableContainer>
 
                     <Box className="pagination-container">
-                        <Button className="pagination-button" id="prev-button" title="Previous page" aria-label="Previous page">
+                        <p>Rows per page: </p>
+                        <select value={perPage} className='rows-per-page' onChange={this.handlePerPageChange}>
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                        </select>
+                        <div className='pagination-range'>{paginationRange}</div>
+                        <Button
+                            className="pagination-button"
+                            id="prev-button"
+                            title="Previous page"
+                            aria-label="Previous page"
+                            disabled={currentPage === 1}
+                            onClick={() => this.handlePageChange(currentPage - 1)}
+                        >
                             &lt;
                         </Button>
 
-                        <div id="pagination-numbers">
+                        <div id="pagination-numbers" className='pagination-numbers'>
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                <Button
+                                    key={page}
+                                    className={`pagination-button ${page === currentPage ? 'active pagination-active' : ''}`}
+                                    onClick={() => this.handlePageChange(page)}
+                                >
+                                    {page}
+                                </Button>
+                            ))}
                         </div>
 
-                        <Button className="pagination-button" id="next-button" title="Next page" aria-label="Next page">
+                        <Button
+                            className="pagination-button"
+                            id="next-button"
+                            title="Next page"
+                            aria-label="Next page"
+                            disabled={currentPage === totalPages}
+                            onClick={() => this.handlePageChange(currentPage + 1)}
+                        >
                             &gt;
                         </Button>
                     </Box>
@@ -629,13 +469,15 @@ class UserTable extends Component<UserTableProps, UserTableState > {
 
 // // export default connect(mapStateToProps)(UserTable);
 // export default connect(mapStateToProps, mapDispatchToProps)(UserTable);
-const mapStateToProps = ( state : RootState  ) =>( {
-    userData : state.user.users
+const mapStateToProps = (state: RootState) => ({
+    userData: state.user.users
 })
 const connector = connect(mapStateToProps)
 type PropsFromRedux = ConnectedProps<typeof connector>;
 const ConnectedComponent = connector(UserTable);
 
 export default ConnectedComponent;
+// type PropsFromRedux = ReturnType<typeof mapStateToProps>;
+// export default connect(mapStateToProps)(UserTable);
 
 
