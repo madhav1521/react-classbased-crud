@@ -1,11 +1,13 @@
 import { combineReducers } from 'redux';
 import AddEdit from './AddEdit';
-import userSlice from '../Store/UserSlice';
+import userSlice, { addUser, deleteUser } from '../Store/UserSlice';
 
 const rootReducer = combineReducers({
-  user:userSlice.reducer,
-  content:userSlice.reducer
+  user:userSlice,
+  // content:userSlice.reducer
   //   edit:userSlice.reducer,
 })
+export type RootState = ReturnType<typeof rootReducer>;
 
+export { addUser, deleteUser };
 export default rootReducer;

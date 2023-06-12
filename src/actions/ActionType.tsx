@@ -6,11 +6,11 @@ export class AddUser extends React.Component {
 
 
 
-export class EditUser extends React.Component {
+export class DeleteUser extends React.Component {
   static FAIL_REQUEST = "FAIL_REQUEST";
 }
 
 
-export class DeleteUser extends React.Component {
+export class EditUser extends React.Component {
   static GET_USER_LIST = "GET_USER_LIST";
 }

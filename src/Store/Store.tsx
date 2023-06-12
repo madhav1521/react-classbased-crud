@@ -27,7 +27,7 @@
 import storage from 'redux-persist/lib/storage';
 import { persistReducer, persistStore } from 'redux-persist';
 import thunk from 'redux-thunk';
-import { configureStore } from "@reduxjs/toolkit";
+import { applyMiddleware, configureStore } from "@reduxjs/toolkit";
 import userSlice from './UserSlice';
 import { useDispatch } from "react-redux";
 import rootReducer from "../reducers";
@@ -40,16 +40,14 @@ const persistConfig = {
 }
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)
-// const store = createStore(persistedReducer);
+const store = createStore(persistedReducer);
 
-const store = configureStore({
-  reducer: {
-    persistedReducer,
-    user:userSlice.reducer,
-  },
-  // devTools: process.env.NODE_ENV !== 'production',
-  // middleware: [thunk]
-})
+// const store = configureStore({
+//   reducer: {
+//     persistedReducer,
+//     user:userSlice.reducer,
+//   },
+// })
 
 const persistor = persistStore(store);
 

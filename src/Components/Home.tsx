@@ -13,6 +13,8 @@ import { IconButton } from '@mui/material';
 import { DebounceInput } from 'react-debounce-input';
 import PaginationTable from './PaginationTable';
 import { RootState } from '../Store/Store';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 type SortOrder = 'asc' | 'desc';
 
@@ -61,6 +63,7 @@ interface UserTableState {
     data: any;
     currentPage: number;
     perPage: number;
+    checkedItems: any;
 }
 class UserTable extends Component<UserTableProps, UserTableState> {
     constructor(props: UserTableProps) {
@@ -76,6 +79,7 @@ class UserTable extends Component<UserTableProps, UserTableState> {
             data: [] as any,
             currentPage: 1,
             perPage: 5,
+            checkedItems: {},
         };
         const data = [...this.props.userData];
 
@@ -193,15 +197,28 @@ class UserTable extends Component<UserTableProps, UserTableState> {
         this.setState({ anchorEl: null });
     };
 
-    handleDelete = (index: any) => {
-        const rows = [...this.props.userData];
-        const updatedData = rows.filter((index, item: any) => item.id !== index);
-        rows.splice(index, 1);
-        alert(`are you sure want to delete the user? `)
-        this.setState({ data: updatedData });
-        console.log('delete:', updatedData)
-        console.log('deleteData:', rows)
-    };
+    // handleDelete = (index: any) => {
+    //     const rows = [...this.props.userData];
+    //     const updatedData = rows.filter((index, item: any) => item.id !== index);
+    //     rows.splice(index, 1);
+    //     alert(`are you sure want to delete the user? `)
+    //     this.setState({ data: updatedData });
+    //     console.log('delete:', updatedData)
+    //     console.log('deleteData:', rows)
+    // };
+    // handleDelete = (id: any) => {
+    //     const { deleteUser } = this.props;
+    //     alert('Are you sure you want to delete the user?');
+    //     deleteUser(id);
+    //   };
+      handleDelete = (id: number) => {
+        const { deleteUser } = this.props;
+        const confirmDelete = window.confirm('Are you sure you want to delete the user?');
+        
+        if (confirmDelete) {
+          deleteUser(id);
+        }
+      };
     handlePageChange = (page: number) => {
         this.setState({ currentPage: page });
     };
@@ -210,12 +227,37 @@ class UserTable extends Component<UserTableProps, UserTableState> {
         this.setState({ perPage });
     };
 
+    handleToggleAll = (event: { target: { checked: any; }; }) => {
+        const { checked } = event.target;
+        const { data } = this.props; // Assuming you have an array of data for the table
+        const checkedItems = [{}];
+    
+        if (!checked) {
+          // Set all checkboxes to checked state
+          data.forEach((item) => {
+            checkedItems[item.id] = true;
+          });
+        }
+    
+        this.setState({ checkedItems });
+      };
+    
+      handleToggleItem = (event: any, itemId: string | number) => {
+        const { checkedItems } = this.state;
+    
+        this.setState((prevState) => ({
+          checkedItems: {
+            ...prevState.checkedItems,
+            [itemId]: !checkedItems[itemId],
+          },
+        }));
+      };
     render() {
         const { userData } = this.props;
         console.log("userData");
         console.log(userData);
 
-        const { selectedRows, selectAll, searchQuery, sortField, sortOrder, filterStatus, anchorEl, currentPage, perPage } = this.state;
+        const { selectedRows, selectAll, searchQuery, sortField, sortOrder, filterStatus, anchorEl, currentPage, perPage, checkedItems } = this.state;
 
         const data = [...this.props.userData];
         console.log('actual data coming', data);
@@ -363,8 +405,9 @@ class UserTable extends Component<UserTableProps, UserTableState> {
                                 <TableRow>
                                     <TableCell>
                                         <Checkbox
-                                            checked={selectAll}
-                                            onChange={this.handleSelectAll}
+                                            onChange={this.handleToggleAll}
+                                            checked={Object.values(checkedItems).every((value) => value)}
+                                          
                                         />
                                     </TableCell>
                                     <TableCell>First Name</TableCell>
@@ -377,13 +420,13 @@ class UserTable extends Component<UserTableProps, UserTableState> {
                             </TableHead>
                             <TableBody>
                                 {filteredAndPaginatedData.length > 0 ? (
-                                    filteredAndPaginatedData.map((user: any) => (
-                                        <TableRow key={user.id} >
+                                    filteredAndPaginatedData.map((user: any,index) => (
+                                        <TableRow key={index} >
                                             <TableCell>
                                                 <Checkbox
-                                                    checked={selectedRows.includes(Number(user.id))}
-                                                    onChange={(event) => this.handleRowSelect(event, Number(user.id))}
-                                                />
+                                                    onChange={(event) => this.handleToggleItem(event, user.id)}
+                                                    checked={checkedItems[user.id] || false}
+                                                    />
                                             </TableCell>
                                             <TableCell>{user.firstName}</TableCell>
                                             <TableCell>{user.lastName}</TableCell>
@@ -392,9 +435,9 @@ class UserTable extends Component<UserTableProps, UserTableState> {
                                             <TableCell><div className={`user-row ${user.status === 'Active' ? 'active' : 'inactive'}`}>
                                                 {user.status}
                                             </div></TableCell>
-                                            <TableCell>
-                                                <Button>Edit</Button>
-                                                <Button onClick={() => this.handleDelete(user.id)}>Delete</Button>
+                                            <TableCell style={{textAlign:"center"}}>
+                                                <Button className='action-button edit'><EditIcon color='success' /></Button>
+                                                <Button className='action-button delete' onClick={() => this.handleDelete(user.id)}><DeleteIcon color='error' /></Button>
                                             </TableCell>
                                         </TableRow>
                                     ))
@@ -470,7 +513,8 @@ class UserTable extends Component<UserTableProps, UserTableState> {
 // // export default connect(mapStateToProps)(UserTable);
 // export default connect(mapStateToProps, mapDispatchToProps)(UserTable);
 const mapStateToProps = (state: RootState) => ({
-    userData: state.user.users
+    userData: state.user.users,
+    deleteUser: userActions.deleteUser
 })
 const connector = connect(mapStateToProps)
 type PropsFromRedux = ConnectedProps<typeof connector>;

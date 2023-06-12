@@ -3,6 +3,8 @@ import React, { Component } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import UserForm from './Components/UserForm';
 import UserTable from './Components/Home';
+import { ThemeProvider } from '@mui/material';
+import { crudTheme } from './app.theme';
 
 interface FormState {
   firstName: string;
@@ -31,20 +33,22 @@ class App extends Component<{}, AppState> {
     const { userData } = this.state;
 
     return (
-      <Router>
-        <div>
-          <Routes >
-            <Route
-              path="/"
-              element={<UserTable data={[]} />}
-            />
-            <Route
-              path="/user-form"
-              element={<UserForm />}
-            />
-          </Routes>
-        </div>
-      </Router >
+      <ThemeProvider theme={crudTheme}>
+        <Router>
+          <div>
+            <Routes >
+              <Route
+                path="/"
+                element={<UserTable data={[]} />}
+              />
+              <Route
+                path="/user-form"
+                element={<UserForm />}
+              />
+            </Routes>
+          </div>
+        </Router >
+      </ThemeProvider>
     );
   }
 }

@@ -1,17 +1,17 @@
 import React, { Component, ChangeEvent, FormEvent } from 'react';
 import { TextField, Button, Select, MenuItem, SelectChangeEvent, Typography } from '@mui/material';
 import { connect, useDispatch } from 'react-redux';
-// import { userActions } from '../Store/UserSlice';
 // import { useNavigate, } from 'react-router-dom';
 // import { createBrowserHistory } from 'history';
 // import { addUser } from '../actions/actions';
 import { Dispatch } from '@reduxjs/toolkit';
-// const history = createBrowserHistory();
-// const { dispatch }:any = this.props;
 import { userActions } from '../Store/UserSlice';
 // import { editContent } from '../Store/UserSlice';
 import { withRouter } from './withRouter';
 // import  editUser  from '../actions/actions';
+import {withFormik, Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
+
 
 
 interface FormState {
@@ -29,7 +29,13 @@ interface UserFormProps {
   navigate : any;
   editContent:(contentId: any, updatedData: any)=>void;
 }
-
+const initialValues = {
+  firstName: '',
+  lastName: '',
+  number: '',
+  email: '',
+  status: 'Inactive',
+};
 class UserForm extends Component<UserFormProps, FormState> {
   constructor(props: UserFormProps) {
     super(props);
@@ -58,9 +64,13 @@ class UserForm extends Component<UserFormProps, FormState> {
     const { name, value } = event.target;
     this.setState({ [name as string]: value } as Pick<FormState, keyof FormState>);
   };
+  // handleSubmit = (values, { setSubmitting }) => {
+  //   // Handle form submission logic here
+  //   console.log(values);
+  //   setSubmitting(false);
+  // };
 
-
-  handleSubmit = (event: FormEvent) => {
+  handleSubmit = (event: FormEvent,values: any, { setSubmitting }: any) => {
 
     event.preventDefault();
     const { dispatch }: any = this.props;
@@ -78,8 +88,33 @@ class UserForm extends Component<UserFormProps, FormState> {
       status: '',
     })
     this.props.navigate('/')
+    console.log(values);
+    setSubmitting(false);
   };
 
+
+  const validationSchema:any = Yup.object({
+    firstName: Yup.string().required('First Name is required'),
+    lastName: Yup.string().required('Last Name is required'),
+    number: Yup.string().required('Contact Number is required'),
+    email: Yup.string().email('Invalid email address').required('Email is required'),
+    status: Yup.string().required('Status is required'),
+  });
+  
+  // const initialValues = {
+  //   firstName: '',
+  //   lastName: '',
+  //   number: '',
+  //   email: '',
+  //   status: 'Inactive',
+  // };
+  
+  // Inside your component class
+  // handleSubmit = (values, { setSubmitting }) => {
+  //   // Handle form submission logic here
+  //   console.log(values);
+  //   setSubmitting(false);
+  // };
 
   render() {
     // const { users,contents } = this.state;
@@ -143,6 +178,76 @@ class UserForm extends Component<UserFormProps, FormState> {
             Submit
           </Button>
         </form>
+
+
+
+<Formik
+  initialValues={initialValues}
+  validationSchema={this.validationSchema}
+  onSubmit={this.handleSubmit}
+>
+  {({ isSubmitting }) => (
+    <Form className='form'>
+      <h2>Add new user</h2>
+      <div className='form-fields'>
+        <label htmlFor='fname'>First Name</label>
+        <Field
+          type='text'
+          name='firstName'
+          className='input-field'
+        />
+        <ErrorMessage name='firstName' component='div' className='error-message' />
+      </div>
+      <div className='form-fields'>
+        <label htmlFor='lname'>Last Name</label>
+        <Field
+          type='text'
+          name='lastName'
+          className='input-field'
+        />
+        <ErrorMessage name='lastName' component='div' className='error-message' />
+      </div>
+      <div className='form-fields number-field'>
+        <label htmlFor='contact'>Contact Number</label>
+        <Typography component='span' className='in-number'>+91</Typography>
+        <Field
+          type='number'
+          name='number'
+          className='input-number'
+        />
+        <ErrorMessage name='number' component='div' className='error-message' />
+      </div>
+      <div className='form-fields'>
+        <label htmlFor='email'>E-mail</label>
+        <Field
+          type='email'
+          name='email'
+          className='input-field'
+        />
+        <ErrorMessage name='email' component='div' className='error-message' />
+      </div>
+      <div className='form-fields'>
+        <label htmlFor='status'>Status</label>
+        <Field
+          as='select'
+          name='status'
+          className='input-field'
+        >
+          <option value='Inactive'>Inactive</option>
+          <option value='Active'>Active</option>
+        </Field>
+        <ErrorMessage name='status' component='div' className='error-message' />
+      </div>
+      <Button type='submit' variant='contained' color='primary' disabled={isSubmitting}>
+        Submit
+      </Button>
+    </Form>
+  )}
+</Formik>
+
+
+
+
       </div>
     );
   }

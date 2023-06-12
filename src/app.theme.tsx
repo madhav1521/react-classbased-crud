@@ -79,6 +79,10 @@ export const crudTheme = createTheme({
     MuiButtonBase: {
       styleOverrides: {
         root: {
+          "&.action-button":{
+            minWidth:"34px",
+            borderRadius:"50px"
+          }
         }
       }
     }

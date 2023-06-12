@@ -22,7 +22,15 @@ export const editUser = (contentId: any, updatedData: any) => {
   };
 };
 
+export const DELETE_USER = 'DELETE_USER';
 
+// Action creator function
+export const deleteUser = (id: any) => {
+  return {
+    type: DELETE_USER,
+    payload: id,
+  };
+};
 // export const userReducer = (state = initialState, action: { type: any; payload: any; }) => {
 //   switch (action.type) {
 //     case 'ADD_USER':
