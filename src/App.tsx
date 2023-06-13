@@ -35,18 +35,22 @@ class App extends Component<{}, AppState> {
     return (
       <ThemeProvider theme={crudTheme}>
         <Router>
-          <div>
+          {/* <div> */}
             <Routes >
               <Route
                 path="/"
                 element={<UserTable data={[]} />}
               />
               <Route
-                path="/user-form"
+                path="/add-user"
+                element={<UserForm />}
+              />
+              <Route
+                path="/edit-user/:id"
                 element={<UserForm />}
               />
             </Routes>
-          </div>
+          {/* </div> */}
         </Router >
       </ThemeProvider>
     );

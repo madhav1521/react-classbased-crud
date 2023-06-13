@@ -28,54 +28,40 @@ const userSlice = createSlice({
     initialState:initialState,
     reducers: {
         addUser (state, action)  {  
-            console.log(action.payload);
             state.users.push(action.payload);
-            // throw new Error("I am add From your slice");
+            console.log(action.payload);
         },
-        deleteUser (state,action) {
-            console.log(action.payload);
-            state.users.push(action.payload);
+        deleteUser(state, action) {
             const userId = action.payload;
-            // return state.filter((user: { id: any; }) => user.id !== userId);
-            throw new Error("I am delete From your slice");
+            const updatedUsers = state.users.filter(user => user.id !== userId);
+            console.log('delete user', updatedUsers)
+            return {
+                ...state,
+                users: updatedUsers
+            };
+        },
+        editUser: (state, action) => {
+            const { userId, updatedData } = action.payload;
+            const updatedContents = state.users.map(content => {
+                if (content.id === userId) {
+                    return {
+                        ...content,
+                        ...updatedData,
+                    };
+                }
+                return content;
+            });
+            state.users = updatedContents;
         },
         // editUser (state,action) {
         //     console.log(action.payload);
         //     state.users.push(action.payload);
         //     throw new Error("I am edit From your slice");
         // },
-        // editContent: (state, action) => {
-        //     const { contentId, updatedData } = action.payload;
-        //     const updatedContents = state.users.map(content => {
-        //       if (content.id === contentId) {
-        //         return {
-        //           ...content,
-        //           ...updatedData,
-        //         };
-        //       }
-        //       return content;
-        //     });
-        //     state.users = updatedContents;
-        //   },
     },
 });
-// export const { editContent } = userSlice.actions;
-// const userReducer = (state = initialState, action: { type: any; payload: any; }) => {
-//   switch (action.type) {
-//     case DELETE_USER:
-//       const userId = action.payload;
-//       const updatedUsers = state.users.filter((user) => user.id !== userId);
-//       return {
-//         ...state,
-//         users: updatedUsers,
-//       };
-//     // other cases
-//     default:
-//       return state;
-//   }
-// };
 const userReducer = userSlice.reducer
 export const  userActions  = userSlice.actions;
 
-export const { addUser, deleteUser } = userSlice.actions;
+export const { addUser, deleteUser,editUser } = userSlice.actions;
 export default userReducer;

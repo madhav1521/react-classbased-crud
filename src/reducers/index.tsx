@@ -4,8 +4,9 @@ import userSlice, { addUser, deleteUser } from '../Store/UserSlice';
 
 const rootReducer = combineReducers({
   user:userSlice,
+  edit:userSlice,
+  delete:userSlice,
   // content:userSlice.reducer
-  //   edit:userSlice.reducer,
 })
 export type RootState = ReturnType<typeof rootReducer>;
 

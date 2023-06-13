@@ -65,13 +65,30 @@ export const crudTheme = createTheme({
         },
       },
     },
+    MuiTableContainer: {
+      styleOverrides: {
+        root: {
+          background:'transparent'
+        },
+      },
+    },
+    MuiTableRow: {
+      styleOverrides: {
+        root:{
+        },
+        head: {
+          background:'#F1F1F1',
+        },
+      },
+    },
+
     MuiFormControl: {
       styleOverrides: {
         root: {
-          ".input-number": {
-            "&.MuiInputBase-input": {
-              paddingLeft: '70px',
-            },
+          "&.input-number": {
+            width: "100%",
+            borderTopLeftRadius: "0",
+            borderBottomLeftRadius: "0",
           },
         },
       },
@@ -79,10 +96,16 @@ export const crudTheme = createTheme({
     MuiButtonBase: {
       styleOverrides: {
         root: {
-          "&.action-button":{
-            minWidth:"34px",
-            borderRadius:"50px"
-          }
+          "&.pagination-button":{
+            minWidth:"40px",
+          },
+          "&.action-button": {
+            minWidth: "34px",
+            borderRadius: "50px"
+          },
+          "&.MuiButton-root.Mui-disabled": {
+            color:"rgb(55 50 50 / 50%);"
+          },
         }
       }
     }

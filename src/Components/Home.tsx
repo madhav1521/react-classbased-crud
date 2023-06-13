@@ -1,4 +1,4 @@
-import React, { ChangeEvent, Component, MouseEventHandler, useCallback } from 'react';
+import React, { ChangeEvent, Component, FormEvent, MouseEventHandler, useCallback } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Checkbox, Button, Box, TextField, FormControl, InputLabel, MenuItem, Select, ListItemIcon, Menu, ListItemText } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { ConnectedProps, connect } from 'react-redux';
@@ -14,21 +14,12 @@ import { DebounceInput } from 'react-debounce-input';
 import PaginationTable from './PaginationTable';
 import { RootState } from '../Store/Store';
 import EditIcon from '@mui/icons-material/Edit';
+import ArrowUpwardOutlinedIcon from '@mui/icons-material/ArrowUpwardOutlined';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { withRouter } from './withRouter';
+import { useSelector } from "react-redux";
 
 type SortOrder = 'asc' | 'desc';
-
-// interface UserTableProps {
-//     data: Array<{
-//         id: number;
-//         firstName: string;
-//         lastName: string;
-//         email: string;
-//         number: string;
-//         status: string;
-//         [key: string]: any;
-//     }>;
-// }
 
 interface UserTableProps extends PropsFromRedux {
     data: {
@@ -40,6 +31,7 @@ interface UserTableProps extends PropsFromRedux {
         number: string;
         status: string;
     }[];
+    navigate: any
 }
 interface User {
     id: number;
@@ -48,6 +40,11 @@ interface User {
     email: string;
     number: string;
     status: string;
+}
+interface UserFormProps {
+    addUser: (userData: User) => void;
+    navigate: any;
+    editUser: (contentId: any, updatedData: any) => void;
 }
 
 type SortField = keyof User
@@ -63,9 +60,13 @@ interface UserTableState {
     data: any;
     currentPage: number;
     perPage: number;
-    checkedItems: any;
+    // checkedItems: any;
+    checked: any;
+    droplets: any;
+    allSelected: boolean;
+    items: any
 }
-class UserTable extends Component<UserTableProps, UserTableState> {
+class UserTable extends Component<UserTableProps, UserTableState, UserFormProps> {
     constructor(props: UserTableProps) {
         super(props);
         this.state = {
@@ -79,68 +80,46 @@ class UserTable extends Component<UserTableProps, UserTableState> {
             data: [] as any,
             currentPage: 1,
             perPage: 5,
-            checkedItems: {},
+            // checkedItems: [],
+            checked: '',
+            droplets: [],
+            allSelected: false,
+            items: ''
         };
-        const data = [...this.props.userData];
+        // const data = [...this.props.userData];
 
         // this.handleSelectAll = this.handleSelectAll.bind(this);
         // this.handleRowSelect = this.handleRowSelect.bind(this);
+        // this.toggleSelectAll = this.toggleSelectAll.bind(this);
+        // this.toggleSelect = this.toggleSelect.bind(this);
 
 
     }
 
-
-    // handleSelectAll = () => {
-    //     const { selectAll } = this.state;
-    //     const data = [...this.props.userData];
-    //     // const { data } = this.props;
-
-    //     if (selectAll) {
-    //         this.setState({ selectedRows: [], selectAll: false });
-    //     } else {
-    //         const selectedIds = data.map((row) => row.id);
-    //         this.setState({ selectedRows: selectedIds, selectAll: true });
-    //         console.log('data', data);
-    //         console.log('selectedIds', selectedIds);
-    //     }
-    // };
-
-    // handleRowSelect = (rowId: number) => {
-    //     const { selectedRows } = this.state;
-
-    //     if (selectedRows.includes(rowId)) {
-    //         const updatedSelection = selectedRows.filter((id) => id !== rowId);
-    //         this.setState({ selectedRows: updatedSelection });
-    //     } else {
-    //         this.setState((prevState) => ({
-    //             selectedRows: [...prevState.selectedRows, rowId],
-    //         }));
-    //     }
-    // };
-
     // handleSelectAll = (event: ChangeEvent<HTMLInputElement>) => {
     //     const { checked } = event.target;
+    //     const selectedRows = checked ? this.props.userData.map((user: { id: any; }) => Number(user.id)) : [];
     //     this.setState({
-    //       selectAll: checked,
-    //       selectedRows: checked ? this.state.data.map((user: { id: any; }) => Number(user.id)) : []
+    //         selectAll: checked,
+    //         selectedRows: selectedRows,
     //     });
-    //   };
+    // };
 
-    //   handleRowSelect = (event:ChangeEvent<HTMLInputElement>, id: number) => {
+    // handleRowSelect = (event: ChangeEvent<HTMLInputElement>, id: number) => {
     //     const { checked } = event.target;
     //     this.setState((prevState) => {
-    //       let selectedRows = [...prevState.selectedRows];
-    //       if (checked) {
-    //         selectedRows.push(id);
-    //       } else {
-    //         selectedRows = selectedRows.filter(rowId => rowId !== id);
-    //       }
-    //       return {
-    //         selectAll: selectedRows.length === prevState.data.length,
-    //         selectedRows
-    //       };
+    //         let selectedRows = [...prevState.selectedRows];
+    //         if (checked) {
+    //             selectedRows.push(id);
+    //         } else {
+    //             selectedRows = selectedRows.filter(rowId => rowId !== id);
+    //         }
+    //         return {
+    //             selectAll: selectedRows.length === this.props.userData.length,
+    //             selectedRows
+    //         };
     //     });
-    //   };
+    // };
 
     handleSelectAll = (event: ChangeEvent<HTMLInputElement>) => {
         const { checked } = event.target;
@@ -169,15 +148,58 @@ class UserTable extends Component<UserTableProps, UserTableState> {
 
 
 
-    handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const searchQuery = event.target.value;
-        this.setState({ searchQuery });
+    // handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    //     const searchQuery = event.target.value;
+    //     this.setState({ searchQuery });
 
+    // };
+    handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { sortField, searchQuery } = this.state;
+        const newSearchQuery = event.target.value;
+
+        this.setState({
+            searchQuery: newSearchQuery
+        }, () => {
+            this.applySearchFilter(sortField, newSearchQuery);
+        });
+    };
+    applySearchFilter = (sortField: string, searchQuery: string) => {
+        const { items } = this.state;
+        const data = [...this.props.userData];
+        // Filter items based on the selected sort field and search query
+        const filteredItems = items.filter((item: { [x: string]: any; }) => {
+            const fieldValue = item[sortField];
+            return fieldValue.toLowerCase().includes(searchQuery.toLowerCase());
+        });
+
+        // Update the filteredItems state
+        // this.setState({
+        //   filteredItems
+        // });
     };
 
-    handleSortFieldChange = (event: SelectChangeEvent<any>) => {
-        const sortField = event.target.value as string;
-        this.setState({ sortField });
+    // handleSortFieldChange = (event: SelectChangeEvent<any>) => {
+    //     const sortField = event.target.value as string;
+    //     this.setState({ sortField });
+    // };
+
+    handleSortFieldChange = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, field: string) => {
+        const { sortField, sortOrder } = this.state;
+        // const newSortField = event.target.value;
+        let newSortOrder = sortOrder;
+
+        // Toggle the sort order if the same field is clicked again
+        if (sortField === field) {
+            newSortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+        }
+
+        this.setState({
+            sortField: field,
+            sortOrder: newSortOrder
+        });
+    };
+    handleSortInputChange = (event: { target: { value: any; }; }) => {
+        this.setState({ sortField: event.target.value });
     };
 
     handleSortOrderChange = (event: SelectChangeEvent<any>) => {
@@ -196,29 +218,27 @@ class UserTable extends Component<UserTableProps, UserTableState> {
     handleCloseMenu = () => {
         this.setState({ anchorEl: null });
     };
-
-    // handleDelete = (index: any) => {
-    //     const rows = [...this.props.userData];
-    //     const updatedData = rows.filter((index, item: any) => item.id !== index);
-    //     rows.splice(index, 1);
-    //     alert(`are you sure want to delete the user? `)
-    //     this.setState({ data: updatedData });
-    //     console.log('delete:', updatedData)
-    //     console.log('deleteData:', rows)
-    // };
-    // handleDelete = (id: any) => {
-    //     const { deleteUser } = this.props;
-    //     alert('Are you sure you want to delete the user?');
-    //     deleteUser(id);
-    //   };
-      handleDelete = (id: number) => {
+    handleDelete = (id: number) => {
         const { deleteUser } = this.props;
         const confirmDelete = window.confirm('Are you sure you want to delete the user?');
-        
+
         if (confirmDelete) {
-          deleteUser(id);
+            deleteUser(id);
         }
-      };
+    };
+
+    handleEdit = (event: { preventDefault: () => void; }) => {
+        event.preventDefault();
+        const { userEdit } = this.props;
+        // console.log{ userEdit }
+    };
+
+    handleEditUser = (userId: number) => {
+        console.log("userId",userId);
+        return false;   
+        this.props.navigate(`edit-user/${userId}`)
+    };
+
     handlePageChange = (page: number) => {
         this.setState({ currentPage: page });
     };
@@ -227,56 +247,32 @@ class UserTable extends Component<UserTableProps, UserTableState> {
         this.setState({ perPage });
     };
 
-    handleToggleAll = (event: { target: { checked: any; }; }) => {
-        const { checked } = event.target;
-        const { data } = this.props; // Assuming you have an array of data for the table
-        const checkedItems = [{}];
-    
-        if (!checked) {
-          // Set all checkboxes to checked state
-          data.forEach((item) => {
-            checkedItems[item.id] = true;
-          });
-        }
-    
-        this.setState({ checkedItems });
-      };
-    
-      handleToggleItem = (event: any, itemId: string | number) => {
-        const { checkedItems } = this.state;
-    
-        this.setState((prevState) => ({
-          checkedItems: {
-            ...prevState.checkedItems,
-            [itemId]: !checkedItems[itemId],
-          },
-        }));
-      };
     render() {
         const { userData } = this.props;
-        console.log("userData");
-        console.log(userData);
 
-        const { selectedRows, selectAll, searchQuery, sortField, sortOrder, filterStatus, anchorEl, currentPage, perPage, checkedItems } = this.state;
+
+        const { selectedRows, selectAll, searchQuery, sortField, sortOrder, filterStatus, anchorEl, currentPage, perPage } = this.state;
 
         const data = [...this.props.userData];
-        console.log('actual data coming', data);
 
-        // const filterFields = ["firstName", "lastName", "email", "number"];
-        const filteredData = data.filter((row: any) => {
-            const fullName = `${row.firstName} ${row.lastName}`;
-            const lowercaseQuery = searchQuery.toLowerCase();
-            return (
-                fullName.toLowerCase().includes(lowercaseQuery) ||
-                row.email.toLowerCase().includes(lowercaseQuery) ||
-                row.number.includes(lowercaseQuery) ||
-                row.status.toLowerCase().includes(lowercaseQuery)
-            );
-        });
+        // const filteredData = data.filter((row: any) => {
+        //     const fullName = `${row.firstName} ${row.lastName}`;
+        //     const lowercaseQuery = searchQuery.toLowerCase();
+        //     return (
+        //         fullName.toLowerCase().includes(lowercaseQuery) ||
+        //         row.email.toLowerCase().includes(lowercaseQuery) ||
+        //         row.number.includes(lowercaseQuery) ||
+        //         row.status.toLowerCase().includes(lowercaseQuery)
+        //     );
+        // });
+        let filteredData = userData;
+        if (filterStatus) {
+            filteredData = userData.filter((user) => user.status === filterStatus);
+        }
 
         // Sort filtered data
         const sortedData = filteredData.sort((a, b) => {
-            
+
             const fieldA: any = a[sortField as SortField].toLowerCase();
             const fieldB: any = b[sortField as SortField].toLowerCase();
 
@@ -288,6 +284,13 @@ class UserTable extends Component<UserTableProps, UserTableState> {
             }
             return 0;
         });
+
+        // Perform search on filtered and sorted data
+        const searchData = sortedData.filter((user) => {
+            const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+            return fullName.includes(searchQuery.toLowerCase());
+        });
+
 
         // Filter sorted data by status
         const filteredByStatusData = filterStatus
@@ -303,31 +306,17 @@ class UserTable extends Component<UserTableProps, UserTableState> {
         const adjustedCurrentPage = currentPage > totalPages ? totalPages : currentPage;
         const startIndex = (adjustedCurrentPage - 1) * perPage;
         const endIndex = startIndex + perPage;
-
         const paginationRange = `${startIndex + 1} - ${Math.min(endIndex, filteredByStatusData.length)} of ${filteredByStatusData.length}`;
 
         // Get paginated data
         const filteredAndPaginatedData = filteredByStatusData.slice(startIndex, endIndex);
 
-
         return (
             <React.Fragment>
                 <div className='user-table'>
+                    <p className='title-search' >Search</p>
                     <Box className='button-component'>
-                        {/* <TextField
-                            label='Search'
-                            value={searchQuery}
-                            onChange={this.handleSearchChange}
-                            placeholder='Search users...'
-                        /> */}
-                        <DebounceInput
-                            minLength={1}
-                            value={searchQuery}
-                            className="search"
-                            placeholder="Search users here..."
-                            debounceTimeout={1000}
-                            onChange={this.handleSearchChange}
-                        />
+
                         <FormControl className='filter-select'>
                             <InputLabel id="filter-select">Select heading</InputLabel>
                             <Select
@@ -336,7 +325,7 @@ class UserTable extends Component<UserTableProps, UserTableState> {
                                 value={sortField}
                                 placeholder="Select Heading"
                                 label="Select heading"
-                                onChange={this.handleSortFieldChange}
+                                onChange={this.handleSortInputChange}
                             >
                                 <MenuItem value="Sort Field">Sort Field</MenuItem>
                                 <MenuItem value="firstName">First Name</MenuItem>
@@ -345,6 +334,15 @@ class UserTable extends Component<UserTableProps, UserTableState> {
                                 <MenuItem value="number">Number</MenuItem>
                             </Select>
                         </FormControl>
+
+                        <DebounceInput
+                            minLength={1}
+                            value={searchQuery}
+                            className="search"
+                            placeholder="Search here..."
+                            debounceTimeout={1000}
+                            onChange={this.handleSearchChange}
+                        />
 
                         <FormControl className='sort-select'>
                             <InputLabel id="asc-desc">Sort by..</InputLabel>
@@ -360,83 +358,104 @@ class UserTable extends Component<UserTableProps, UserTableState> {
                             </Select>
                         </FormControl>
 
-                        <IconButton
-                            color='primary'
-                            aria-controls='filter-menu'
-                            aria-haspopup='true'
-                            onClick={this.handleClickMenuButton}
-                        >
-                            <MoreVertIcon />
-                        </IconButton>
-
-                        <Menu
-                            id='filter-menu'
-                            anchorEl={anchorEl}
-                            keepMounted
-                            open={Boolean(anchorEl)}
-                            onClose={this.handleCloseMenu}
-                        >
-                            <MenuItem onClick={() => this.handleFilterStatusChange(null)}>
-                                <ListItemIcon>
-                                    <Checkbox checked={filterStatus === null} />
-                                </ListItemIcon>
-                                <ListItemText primary='All' />
-                            </MenuItem>
-                            <MenuItem onClick={() => this.handleFilterStatusChange('Active')}>
-                                <ListItemIcon>
-                                    <Checkbox checked={filterStatus === 'Active'} />
-                                </ListItemIcon>
-                                <ListItemText primary='Active' />
-                            </MenuItem>
-                            <MenuItem onClick={() => this.handleFilterStatusChange('Inactive')}>
-                                <ListItemIcon>
-                                    <Checkbox checked={filterStatus === 'Inactive'} />
-                                </ListItemIcon>
-                                <ListItemText primary='Inactive' />
-                            </MenuItem>
-                        </Menu>
-                        <Button component={Link} to="/user-form" className='newuser-btn ' variant="contained" color="primary">
+                        <Button component={Link} to="/add-user" className='newuser-btn ' variant="contained" color="info">
                             + Create New User
                         </Button>
                     </Box>
                     <TableContainer component={Paper}>
                         <Table>
                             <TableHead>
-                                <TableRow>
+                                <TableRow className='table-row'>
                                     <TableCell>
                                         <Checkbox
-                                            onChange={this.handleToggleAll}
-                                            checked={Object.values(checkedItems).every((value) => value)}
-                                          
+                                            checked={selectAll}
+                                            indeterminate={selectedRows.length > 0 && selectedRows.length < userData.length}
+                                            onChange={this.handleSelectAll}
                                         />
                                     </TableCell>
-                                    <TableCell>First Name</TableCell>
-                                    <TableCell>Last Name</TableCell>
-                                    <TableCell>Email</TableCell>
-                                    <TableCell>Number</TableCell>
+
+                                    <TableCell onClick={(event) => this.handleSortFieldChange(event, 'firstName')}>
+                                        First Name {sortField === 'firstName' && (
+                                            <ArrowUpwardOutlinedIcon style={{ transform: sortOrder === 'desc' ? 'rotate(180deg)' : 'none' }} />
+                                        )}
+                                    </TableCell>
+                                    <TableCell onClick={(event) => this.handleSortFieldChange(event, 'lastName')}>
+                                        Last Name {sortField === 'lastName' && (
+                                            <ArrowUpwardOutlinedIcon style={{ transform: sortOrder === 'desc' ? 'rotate(180deg)' : 'none' }} />
+                                        )}
+                                    </TableCell>
+                                    <TableCell onClick={(event) => this.handleSortFieldChange(event, 'email')}>
+                                        Email {sortField === 'email' && (
+                                            <ArrowUpwardOutlinedIcon style={{ transform: sortOrder === 'desc' ? 'rotate(180deg)' : 'none' }} />
+                                        )}
+                                    </TableCell>
+                                    <TableCell onClick={(event) => this.handleSortFieldChange(event, 'number')}>
+                                        Number {sortField === 'number' && (
+                                            <ArrowUpwardOutlinedIcon style={{ transform: sortOrder === 'desc' ? 'rotate(180deg)' : 'none' }} />
+                                        )}
+                                    </TableCell>
                                     <TableCell>Status</TableCell>
-                                    <TableCell style={{textAlign:"center"}}>Action</TableCell>
+                                    <TableCell style={{ textAlign: "center" }}>
+                                        Action
+
+                                        <IconButton
+                                            color='primary'
+                                            aria-controls='filter-menu'
+                                            aria-haspopup='true'
+                                            onClick={this.handleClickMenuButton}
+                                        >
+                                            <MoreVertIcon />
+                                        </IconButton>
+                                        <Menu
+                                            id='filter-menu'
+                                            anchorEl={anchorEl}
+                                            keepMounted
+                                            open={Boolean(anchorEl)}
+                                            onClose={this.handleCloseMenu}
+                                        >
+                                            <MenuItem onClick={() => this.handleFilterStatusChange(null)}>
+                                                <ListItemIcon>
+                                                    <Checkbox checked={filterStatus === null} />
+                                                </ListItemIcon>
+                                                <ListItemText primary='All' />
+                                            </MenuItem>
+                                            <MenuItem onClick={() => this.handleFilterStatusChange('Active')}>
+                                                <ListItemIcon>
+                                                    <Checkbox checked={filterStatus === 'Active'} />
+                                                </ListItemIcon>
+                                                <ListItemText primary='Active' />
+                                            </MenuItem>
+                                            <MenuItem onClick={() => this.handleFilterStatusChange('Inactive')}>
+                                                <ListItemIcon>
+                                                    <Checkbox checked={filterStatus === 'Inactive'} />
+                                                </ListItemIcon>
+                                                <ListItemText primary='Inactive' />
+                                            </MenuItem>
+                                        </Menu>
+                                    </TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 {filteredAndPaginatedData.length > 0 ? (
-                                    filteredAndPaginatedData.map((user: any,index) => (
+                                    filteredAndPaginatedData.map((user: any, index: React.Key | null | undefined) => (
                                         <TableRow key={index} >
                                             <TableCell>
                                                 <Checkbox
-                                                    onChange={(event) => this.handleToggleItem(event, user.id)}
-                                                    checked={checkedItems[user.id] || false}
-                                                    />
+                                                    // checked={selectAll || this.state.selectedRows.includes(user.id)}
+                                                    // onChange={() => this.handleRowSelect}
+                                                    checked={selectedRows.includes(user.id)}
+                                                    onChange={(event) => this.handleRowSelect(event, user.id)}
+                                                />
                                             </TableCell>
                                             <TableCell>{user.firstName}</TableCell>
                                             <TableCell>{user.lastName}</TableCell>
                                             <TableCell>{user.email}</TableCell>
-                                            <TableCell>{user.number}</TableCell>
+                                            <TableCell>+91{user.number}</TableCell>
                                             <TableCell><div className={`user-row ${user.status === 'Active' ? 'active' : 'inactive'}`}>
                                                 {user.status}
                                             </div></TableCell>
-                                            <TableCell style={{textAlign:"center"}}>
-                                                <Button className='action-button edit'><EditIcon color='success' /></Button>
+                                            <TableCell style={{ textAlign: "center" }}>
+                                                <Button className='action-button edit' onClick={() => this.handleEditUser(user.id)}><EditIcon color='success' /></Button>
                                                 <Button className='action-button delete' onClick={() => this.handleDelete(user.id)}><DeleteIcon color='error' /></Button>
                                             </TableCell>
                                         </TableRow>
@@ -461,7 +480,7 @@ class UserTable extends Component<UserTableProps, UserTableState> {
                         </select>
                         <div className='pagination-range'>{paginationRange}</div>
                         <Button
-                            className="pagination-button"
+                            className="pagination-button arrow-btn"
                             id="prev-button"
                             title="Previous page"
                             aria-label="Previous page"
@@ -484,7 +503,7 @@ class UserTable extends Component<UserTableProps, UserTableState> {
                         </div>
 
                         <Button
-                            className="pagination-button"
+                            className="pagination-button arrow-btn"
                             id="next-button"
                             title="Next page"
                             aria-label="Next page"
@@ -512,13 +531,16 @@ class UserTable extends Component<UserTableProps, UserTableState> {
 
 // // export default connect(mapStateToProps)(UserTable);
 // export default connect(mapStateToProps, mapDispatchToProps)(UserTable);
+
 const mapStateToProps = (state: RootState) => ({
     userData: state.user.users,
+    userEdit: state.edit.users,
+    id: state.delete.users,
     deleteUser: userActions.deleteUser
 })
 const connector = connect(mapStateToProps)
 type PropsFromRedux = ConnectedProps<typeof connector>;
-const ConnectedComponent = connector(UserTable);
+const ConnectedComponent = connector(withRouter(UserTable));
 
 export default ConnectedComponent;
 // type PropsFromRedux = ReturnType<typeof mapStateToProps>;
