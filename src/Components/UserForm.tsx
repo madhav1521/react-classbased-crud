@@ -19,6 +19,7 @@ interface UserFormProps {
 }
 
 interface FormState {
+  id:string | number;
   firstName: string;
   lastName: string;
   number: string;
@@ -29,6 +30,7 @@ interface FormState {
 }
 type UserValues = keyof FormState;
 const initialValues: FormState = {
+  id:'',
   firstName: '',
   lastName: '',
   number: '',
@@ -39,6 +41,7 @@ class UserForm extends Component<UserFormProps, FormState> {
   constructor(props: UserFormProps) {
     super(props);
     this.state = {
+      id:Math.random().toFixed(2),
       firstName: '',
       lastName: '',
       number: '',
@@ -67,15 +70,19 @@ class UserForm extends Component<UserFormProps, FormState> {
   handleSubmit = () => {
     // const { dispatch }: any = this.props;
     // const { contentId, updatedData } = this.props;
-    const { firstName, lastName, number, email, status } = this.state;
+    const { firstName, lastName, number, email, status,id } = this.state;
     const newUser = {
+      id,
       firstName,
       lastName,
       number,
       email,
       status,
     };
+    console.log('id', id)
+
     this.setState({
+      id:0,
       firstName: '',
       lastName: '',
       email: '',

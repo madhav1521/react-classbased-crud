@@ -2,7 +2,7 @@ import React, { ChangeEvent, Component, FormEvent, MouseEventHandler, useCallbac
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Checkbox, Button, Box, TextField, FormControl, InputLabel, MenuItem, Select, ListItemIcon, Menu, ListItemText } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { ConnectedProps, connect } from 'react-redux';
-import { userActions } from '../Store/UserSlice';
+import { deleteUser, userActions } from '../Store/UserSlice';
 import { SelectChangeEvent } from '@mui/material';
 // import { addUser } from '../actions/actions';
 // import {MoreVertIcon} from '@mui/icons-material';
@@ -31,7 +31,9 @@ interface UserTableProps extends PropsFromRedux {
         number: string;
         status: string;
     }[];
-    navigate: any
+    navigate: any;
+    onEditUser: (id: number) => void;
+
 }
 interface User {
     id: number;
@@ -40,6 +42,7 @@ interface User {
     email: string;
     number: string;
     status: string;
+
 }
 interface UserFormProps {
     addUser: (userData: User) => void;
@@ -90,20 +93,30 @@ class UserTable extends Component<UserTableProps, UserTableState, UserFormProps>
 
         // this.handleSelectAll = this.handleSelectAll.bind(this);
         // this.handleRowSelect = this.handleRowSelect.bind(this);
-        // this.toggleSelectAll = this.toggleSelectAll.bind(this);
-        // this.toggleSelect = this.toggleSelect.bind(this);
-
 
     }
-
-    // handleSelectAll = (event: ChangeEvent<HTMLInputElement>) => {
-    //     const { checked } = event.target;
-    //     const selectedRows = checked ? this.props.userData.map((user: { id: any; }) => Number(user.id)) : [];
-    //     this.setState({
-    //         selectAll: checked,
-    //         selectedRows: selectedRows,
+    // handleStatusChange = (userId: any, newStatus: any) => {
+    //     const { data, onStatusChange } = this.props;
+    //     const updatedUsers = data.map((user: { id: any; }) => {
+    //         if (user.id === userId) {
+    //             return {
+    //                 ...user,
+    //                 status: newStatus
+    //             };
+    //         }
+    //         return user;
     //     });
+    //     onStatusChange(updatedUsers);
     // };
+
+    handleSelectAll = (event: ChangeEvent<HTMLInputElement>) => {
+        const { checked } = event.target;
+        const selectedRows = checked ? this.props.userData.map((user: { id: any; }) => Number(user.id)) : [];
+        this.setState({
+            selectAll: checked,
+            selectedRows: selectedRows,
+        });
+    };
 
     // handleRowSelect = (event: ChangeEvent<HTMLInputElement>, id: number) => {
     //     const { checked } = event.target;
@@ -121,14 +134,14 @@ class UserTable extends Component<UserTableProps, UserTableState, UserFormProps>
     //     });
     // };
 
-    handleSelectAll = (event: ChangeEvent<HTMLInputElement>) => {
-        const { checked } = event.target;
-        const selectedRows = checked ? this.props.userData.map((user: { id: any; }) => Number(user.id)) : [];
-        this.setState({
-            selectAll: checked,
-            selectedRows: selectedRows,
-        });
-    };
+    // handleSelectAll = (event: ChangeEvent<HTMLInputElement>) => {
+    //     const { checked } = event.target;
+    //     const selectedRows = checked ? this.props.userData.map((user: { id: any; }) => Number(user.id)) : [];
+    //     this.setState({
+    //         selectAll: checked,
+    //         selectedRows: selectedRows,
+    //     });
+    // };
 
     handleRowSelect = (event: ChangeEvent<HTMLInputElement>, id: number) => {
         const { checked } = event.target;
@@ -146,42 +159,31 @@ class UserTable extends Component<UserTableProps, UserTableState, UserFormProps>
         });
     };
 
+    // handleRowSelect = (event: React.ChangeEvent<HTMLInputElement>, userId: number) => {
+    //     const { checked } = event.target;
+    //     this.setState((prevState) => {
+    //       let { selectedRows } = prevState;
+    //       if (checked) {
+    //         selectedRows.push(userId);
+    //       } else {
+    //         selectedRows = selectedRows.filter((id) => id !== userId);
+    //       }
+    //       return { selectedRows };
+    //     });
+    //   };
 
+    //   handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    //     const { checked } = event.target;
+    //     const { userData } = this.props;
+    //     const selectedRows = checked ? userData.map((user) => user.id) : [];
+    //     this.setState({ selectedRows:selectedRows, selectAll: checked });
+    //   };
 
-    // handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     const searchQuery = event.target.value;
-    //     this.setState({ searchQuery });
-
-    // };
     handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const { sortField, searchQuery } = this.state;
-        const newSearchQuery = event.target.value;
+        const searchQuery = event.target.value;
+        this.setState({ searchQuery });
 
-        this.setState({
-            searchQuery: newSearchQuery
-        }, () => {
-            this.applySearchFilter(sortField, newSearchQuery);
-        });
     };
-    applySearchFilter = (sortField: string, searchQuery: string) => {
-        const { items } = this.state;
-        const data = [...this.props.userData];
-        // Filter items based on the selected sort field and search query
-        const filteredItems = items.filter((item: { [x: string]: any; }) => {
-            const fieldValue = item[sortField];
-            return fieldValue.toLowerCase().includes(searchQuery.toLowerCase());
-        });
-
-        // Update the filteredItems state
-        // this.setState({
-        //   filteredItems
-        // });
-    };
-
-    // handleSortFieldChange = (event: SelectChangeEvent<any>) => {
-    //     const sortField = event.target.value as string;
-    //     this.setState({ sortField });
-    // };
 
     handleSortFieldChange = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, field: string) => {
         const { sortField, sortOrder } = this.state;
@@ -218,13 +220,28 @@ class UserTable extends Component<UserTableProps, UserTableState, UserFormProps>
     handleCloseMenu = () => {
         this.setState({ anchorEl: null });
     };
-    handleDelete = (id: number) => {
-        const { deleteUser } = this.props;
+    // handleDelete = (id: number) => {
+    //     const { deleteUser } = this.props;
+    //     console.log('deleteuser id:',deleteUser);
+
+    //     const confirmDelete = window.confirm('Are you sure you want to delete the user?');
+
+    //     if (confirmDelete) {
+    //         deleteUser(id);
+    //     }
+    // };
+    handleDelete = () => {
+        const { selectedRows } = this.state;
+        this.props.deleteUser(selectedRows);
         const confirmDelete = window.confirm('Are you sure you want to delete the user?');
 
-        if (confirmDelete) {
-            deleteUser(id);
-        }
+        // if (confirmDelete) {
+        //     deleteUser(id);
+        // }
+        this.setState({
+            selectedRows: [],
+            selectAll: false,
+        });
     };
 
     handleEdit = (event: { preventDefault: () => void; }) => {
@@ -234,13 +251,14 @@ class UserTable extends Component<UserTableProps, UserTableState, UserFormProps>
     };
 
     handleEditUser = (userId: number) => {
-        console.log("userId",userId);
-        return false;   
+        console.log("userId", userId);
         this.props.navigate(`edit-user/${userId}`)
+        this.props.onEditUser(userId);
+        return true;
     };
 
     handlePageChange = (page: number) => {
-        this.setState({ currentPage: page });
+        this.setState({ currentPage: page + 1 });
     };
     handlePerPageChange = (event: { target: { value: string; }; }) => {
         const perPage = parseInt(event.target.value);
@@ -250,25 +268,25 @@ class UserTable extends Component<UserTableProps, UserTableState, UserFormProps>
     render() {
         const { userData } = this.props;
 
-
+        // {console.log('id', id)}
         const { selectedRows, selectAll, searchQuery, sortField, sortOrder, filterStatus, anchorEl, currentPage, perPage } = this.state;
 
         const data = [...this.props.userData];
 
-        // const filteredData = data.filter((row: any) => {
-        //     const fullName = `${row.firstName} ${row.lastName}`;
-        //     const lowercaseQuery = searchQuery.toLowerCase();
-        //     return (
-        //         fullName.toLowerCase().includes(lowercaseQuery) ||
-        //         row.email.toLowerCase().includes(lowercaseQuery) ||
-        //         row.number.includes(lowercaseQuery) ||
-        //         row.status.toLowerCase().includes(lowercaseQuery)
-        //     );
-        // });
-        let filteredData = userData;
-        if (filterStatus) {
-            filteredData = userData.filter((user) => user.status === filterStatus);
-        }
+        const filteredData = data.filter((row: any) => {
+            const fullName = `${row.firstName} ${row.lastName}`;
+            const lowercaseQuery = searchQuery.toLowerCase();
+            return (
+                fullName.toLowerCase().includes(lowercaseQuery) ||
+                row.email.toLowerCase().includes(lowercaseQuery) ||
+                row.number.includes(lowercaseQuery) ||
+                row.status.toLowerCase().includes(lowercaseQuery)
+            );
+        });
+        // let filteredData = userData;
+        // if (filterStatus) {
+        //     filteredData = userData.filter((user) => user.status === filterStatus);
+        // }
 
         // Sort filtered data
         const sortedData = filteredData.sort((a, b) => {
@@ -344,7 +362,7 @@ class UserTable extends Component<UserTableProps, UserTableState, UserFormProps>
                             onChange={this.handleSearchChange}
                         />
 
-                        <FormControl className='sort-select'>
+                        {/* <FormControl className='sort-select'>
                             <InputLabel id="asc-desc">Sort by..</InputLabel>
                             <Select
                                 labelId="asc-desc"
@@ -356,7 +374,7 @@ class UserTable extends Component<UserTableProps, UserTableState, UserFormProps>
                                 <MenuItem value="asc">Ascending</MenuItem>
                                 <MenuItem value="desc">Descending</MenuItem>
                             </Select>
-                        </FormControl>
+                        </FormControl> */}
 
                         <Button component={Link} to="/add-user" className='newuser-btn ' variant="contained" color="info">
                             + Create New User
@@ -412,6 +430,7 @@ class UserTable extends Component<UserTableProps, UserTableState, UserFormProps>
                                             keepMounted
                                             open={Boolean(anchorEl)}
                                             onClose={this.handleCloseMenu}
+                                        // onChange={(e) =>this.handleStatusChange(user.id, e.target.value)}
                                         >
                                             <MenuItem onClick={() => this.handleFilterStatusChange(null)}>
                                                 <ListItemIcon>
@@ -438,7 +457,7 @@ class UserTable extends Component<UserTableProps, UserTableState, UserFormProps>
                             <TableBody>
                                 {filteredAndPaginatedData.length > 0 ? (
                                     filteredAndPaginatedData.map((user: any, index: React.Key | null | undefined) => (
-                                        <TableRow key={index} >
+                                        <TableRow key={user.id} >
                                             <TableCell>
                                                 <Checkbox
                                                     // checked={selectAll || this.state.selectedRows.includes(user.id)}
@@ -455,8 +474,8 @@ class UserTable extends Component<UserTableProps, UserTableState, UserFormProps>
                                                 {user.status}
                                             </div></TableCell>
                                             <TableCell style={{ textAlign: "center" }}>
-                                                <Button className='action-button edit' onClick={() => this.handleEditUser(user.id)}><EditIcon color='success' /></Button>
-                                                <Button className='action-button delete' onClick={() => this.handleDelete(user.id)}><DeleteIcon color='error' /></Button>
+                                                <Button className='action-button edit' onClick={() => this.handleEditUser(user.id)}><EditIcon color='success' />{JSON.stringify(user.id)}</Button>
+                                                <Button className='action-button delete' onClick={() => this.handleDelete()}><DeleteIcon color='error' /></Button>
                                             </TableCell>
                                         </TableRow>
                                     ))
@@ -508,7 +527,7 @@ class UserTable extends Component<UserTableProps, UserTableState, UserFormProps>
                             title="Next page"
                             aria-label="Next page"
                             disabled={currentPage === totalPages}
-                            onClick={() => this.handlePageChange(currentPage + 1)}
+                            onClick={() => this.handlePageChange(currentPage)}
                         >
                             &gt;
                         </Button>
